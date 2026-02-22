@@ -1,0 +1,25 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+// Creamos tema base Material 3
+$uts-theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$green-palette
+  )
+));
+
+@include mat.all-component-themes($uts-theme);
+
+// 🔥 Forzamos el verde institucional exacto
+:root {
+  --mdc-theme-primary: #C7D22C;
+  --mdc-theme-on-primary: #000000;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, sans-serif;
+  background-color: #ffffff;
+}
