@@ -192,43 +192,62 @@ export const getDashboardMetrics = async (req: AuthRequest, res: Response) => {
 
     const filter: any = { isDeleted: false };
 
+    // ✅ APLICAR FILTRO ANTES DE TODO
+    if (from || to) {
+      filter.eventDate = {};
+
+      if (from) {
+        filter.eventDate.$gte = new Date(from as string);
+      }
+
+      if (to) {
+        const endDate = new Date(to as string);
+        endDate.setHours(23, 59, 59, 999); // 🔥 incluir todo el día
+        filter.eventDate.$lte = endDate;
+      }
+    }
+
+    // ✅ MÉTRICAS BÁSICAS
+    const totalCases = await Case.countDocuments(filter);
+    const openCases = await Case.countDocuments({ ...filter, status: 'ABIERTO' });
+    const closedCases = await Case.countDocuments({ ...filter, status: 'CERRADO' });
+
+    // ✅ POR TIPO
+    const byType = await Case.aggregate([
+      { $match: filter },
+      { $group: { _id: '$tipoEventoPrincipal', count: { $sum: 1 } } }
+    ]);
+
+    // ✅ POR GRAVEDAD
+    const byGravedad = await Case.aggregate([
+      { $match: filter },
+      { $group: { _id: '$gradoGravedad', count: { $sum: 1 } } }
+    ]);
+
+    // ✅ POR JORNADA
+    const byJornada = await Case.aggregate([
+      { $match: filter },
+      { $group: { _id: '$jornada', count: { $sum: 1 } } }
+    ]);
+
+    // ✅ POR FECHA (ESTA ERA LA QUE ESTABA MAL)
     const byDate = await Case.aggregate([
       { $match: filter },
       {
         $group: {
           _id: {
-            date: { $dateToString: { format: "%Y-%m-%d", date: "$eventDate" } },
+            date: {
+              $dateToString: {
+                format: "%Y-%m-%d",
+                date: "$eventDate"
+              }
+            },
             type: "$tipoEventoPrincipal"
           },
           count: { $sum: 1 }
         }
       },
       { $sort: { "_id.date": 1 } }
-    ]);
-
-    if (from || to) {
-      filter.eventDate = {};
-      if (from) filter.eventDate.$gte = new Date(from as string);
-      if (to) filter.eventDate.$lte = new Date(to as string);
-    }
-
-    const totalCases = await Case.countDocuments(filter);
-    const openCases = await Case.countDocuments({ ...filter, status: 'ABIERTO' });
-    const closedCases = await Case.countDocuments({ ...filter, status: 'CERRADO' });
-
-    const byType = await Case.aggregate([
-      { $match: filter },
-      { $group: { _id: '$tipoEventoPrincipal', count: { $sum: 1 } } }
-    ]);
-
-    const byGravedad = await Case.aggregate([
-      { $match: filter },
-      { $group: { _id: '$gradoGravedad', count: { $sum: 1 } } }
-    ]);
-
-    const byJornada = await Case.aggregate([
-      { $match: filter },
-      { $group: { _id: '$jornada', count: { $sum: 1 } } }
     ]);
 
     res.json({
@@ -245,7 +264,6 @@ export const getDashboardMetrics = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Error obteniendo métricas', error });
   }
 };
-
 import { Parser } from 'json2csv';
 
 export const exportCasesCSV = async (req: AuthRequest, res: Response) => {

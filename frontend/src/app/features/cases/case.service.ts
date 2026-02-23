@@ -11,9 +11,12 @@ export class CaseService {
 
   constructor(private http: HttpClient) {}
 
-  getDashboardMetrics(): Observable<any> {
-    return this.http.get(`${this.api}/dashboard`);
-  }
+  getDashboardMetrics(params?: any) {
+  return this.http.get<any>(
+    `${this.api}/dashboard`,
+    { params }
+  );
+}
 
   getCases(params: any) {
     return this.http.get<any>(`${this.api}`, { params });
@@ -45,4 +48,5 @@ export class CaseService {
     return this.http.post(`${this.api}/${id}/evidence`, formData);
   }
 
+  
 }
