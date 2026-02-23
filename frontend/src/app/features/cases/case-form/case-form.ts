@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 import { CaseService } from '../case.service';
 import { NgFor } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-case-form',
@@ -217,7 +218,9 @@ export class CaseFormComponent implements OnInit {
     private fb: FormBuilder,
     private caseService: CaseService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private notification: NotificationService
+
   ) {}
 
   isEditMode = false;
@@ -270,12 +273,18 @@ export class CaseFormComponent implements OnInit {
     if (this.isEditMode) {
       this.caseService.updateCase(this.caseId, this.form.value)
         .subscribe(() => {
+          this.notification.success('Caso actualizado correctamente');
           this.router.navigate(['/cases']);
+        }, () => {
+          this.notification.error('Error actualizando el caso');
         });
     } else {
       this.caseService.createCase(this.form.value)
         .subscribe(() => {
+          this.notification.success('Caso creado correctamente');
           this.router.navigate(['/cases']);
+        }, () => {
+          this.notification.error('Error creando el caso');
         });
     }
 

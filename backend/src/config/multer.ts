@@ -1,21 +1,81 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import Case from '../models/Case';
 
-const uploadPath = path.join(__dirname, '../../uploads');
+const baseUploadPath = path.join(__dirname, '../../uploads');
 
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath);
+// Crear carpeta raíz si no existe
+if (!fs.existsSync(baseUploadPath)) {
+  fs.mkdirSync(baseUploadPath, { recursive: true });
 }
 
+// Función para sanitizar nombre
+const sanitizeFileName = (name: string): string => {
+  return name
+    .replace(/\s+/g, '_')         // Reemplaza espacios por _
+    .replace(/[^\w.-]/g, '')      // Elimina caracteres especiales
+    .toLowerCase();
+};
+
 const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, uploadPath);
+
+  destination: async (req, _file, cb) => {
+    try {
+
+      const caseId = req.params.id;
+
+      const caseDoc = await Case.findById(caseId);
+
+      if (!caseDoc) {
+        return cb(new Error('Caso no encontrado'), '');
+      }
+
+      const caseFolder = path.join(baseUploadPath, caseDoc.code);
+
+      // Crear carpeta del caso si no existe
+      if (!fs.existsSync(caseFolder)) {
+        fs.mkdirSync(caseFolder, { recursive: true });
+      }
+
+      cb(null, caseFolder);
+
+    } catch (error) {
+      cb(error as Error, '');
+    }
   },
-  filename: (_req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+
+  filename: (req, file, cb) => {
+
+    const caseId = req.params.id;
+
+    Case.findById(caseId).then(caseDoc => {
+
+      if (!caseDoc) {
+        return cb(new Error('Caso no encontrado'), '');
+      }
+
+      const caseFolder = path.join(baseUploadPath, caseDoc.code);
+
+      const sanitized = sanitizeFileName(file.originalname);
+
+      const ext = path.extname(sanitized);
+      const baseName = path.basename(sanitized, ext);
+
+      let finalName = sanitized;
+      let counter = 1;
+
+      while (fs.existsSync(path.join(caseFolder, finalName))) {
+        finalName = `${baseName}_${counter}${ext}`;
+        counter++;
+      }
+
+      cb(null, finalName);
+
+    }).catch(err => cb(err, ''));
+
   }
+
 });
 
 const fileFilter = (
@@ -23,6 +83,7 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: multer.FileFilterCallback
 ) => {
+
   const allowedTypes = [
     'application/pdf',
     'image/jpeg',

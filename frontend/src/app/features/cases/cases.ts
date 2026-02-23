@@ -93,6 +93,21 @@ import { Router } from '@angular/router';
         <td mat-cell *matCellDef="let element">{{ element.status }}</td>
       </ng-container>
 
+      <ng-container matColumnDef="seguimiento">
+        <th mat-header-cell *matHeaderCellDef>Seguimiento</th>
+        <td mat-cell *matCellDef="let element">
+
+          <mat-icon *ngIf="element.comments?.length" color="primary">
+            chat
+          </mat-icon>
+
+          <mat-icon *ngIf="element.evidences?.length" color="accent">
+            attach_file
+          </mat-icon>
+
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef>Acciones</th>
         <td mat-cell *matCellDef="let element">
@@ -148,6 +163,7 @@ export class CasesComponent implements OnInit {
     'tipoEventoPrincipal',
     'gradoGravedad',
     'status',
+    'seguimiento',
     'actions'
   ];
 
@@ -206,9 +222,12 @@ export class CasesComponent implements OnInit {
   }
 
   viewCase(element: any) {
-    this.dialog.open(CaseDetailComponent, {
-      width: '600px',
-      data: element
+    const dialogRef = this.dialog.open(CaseDetailComponent, {
+      data: { ...element } // 🔥 copia superficial
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      this.loadCases(); // 🔥 recarga tabla
     });
   }
 

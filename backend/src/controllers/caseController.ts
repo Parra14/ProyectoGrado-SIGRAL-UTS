@@ -162,9 +162,15 @@ export const uploadEvidence = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: 'No se envió archivo' });
     }
 
-    caseDoc.evidences.push(`/uploads/${req.file.filename}`);
+    caseDoc.evidences.push(`/uploads/${caseDoc.code}/${req.file.filename}`);
     await caseDoc.save();
 
+    caseDoc.comments.push({
+      userId: req.user!.id,
+      message: `Se cargó la evidencia: ${req.file.originalname}`,
+      createdAt: new Date()
+    });
+    
     await logAudit({
       userId: req.user!.id,
       action: 'UPLOAD_EVIDENCE',

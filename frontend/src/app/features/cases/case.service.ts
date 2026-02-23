@@ -35,4 +35,14 @@ export class CaseService {
     return this.http.put(`${this.api}/${id}`, data);
   }
 
+  addComment(id: string, message: string) {
+    return this.http.post(`${this.api}/${id}/comment`, { message });
+  }
+
+  uploadEvidence(id: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.api}/${id}/evidence`, formData);
+  }
+
 }

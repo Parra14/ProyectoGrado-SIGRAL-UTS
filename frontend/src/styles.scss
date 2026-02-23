@@ -23,3 +23,23 @@ body {
   font-family: Roboto, sans-serif;
   background-color: #ffffff;
 }
+
+.snackbar-success .mdc-snackbar__surface {
+  background-color: #6cbf6d !important;
+  color: #ffffff !important;
+}
+
+.snackbar-error .mdc-snackbar__surface {
+  background-color: #db6460 !important;
+  color: #ffffff !important;
+}
+
+.snackbar-success .mdc-button__label {
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.snackbar-error .mdc-button__label {
+  color: #ffffff !important;
+  font-weight: 600;
+}
