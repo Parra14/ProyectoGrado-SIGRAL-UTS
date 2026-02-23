@@ -20,7 +20,7 @@ import { AuthService } from '../../core/auth';
   ],
   template: `
     <mat-sidenav-container class="layout-container">
-      <mat-sidenav #sidenav mode="side" opened class="sidenav">
+      <mat-sidenav #sidenav mode="over" class="sidenav">
 
         <h3 class="menu-title">SIGRAL-UTS</h3>
 

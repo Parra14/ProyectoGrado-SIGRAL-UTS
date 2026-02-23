@@ -7,6 +7,8 @@ import { jwtInterceptor } from './core/jwt-interceptor';
 
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -15,6 +17,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(
       withInterceptors([jwtInterceptor])
     ),
-    provideAnimations()
+    provideAnimations(),
+    provideCharts(withDefaultRegisterables())
   ]
 };

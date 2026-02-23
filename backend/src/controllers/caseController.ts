@@ -192,6 +192,20 @@ export const getDashboardMetrics = async (req: AuthRequest, res: Response) => {
 
     const filter: any = { isDeleted: false };
 
+    const byDate = await Case.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: {
+            date: { $dateToString: { format: "%Y-%m-%d", date: "$eventDate" } },
+            type: "$tipoEventoPrincipal"
+          },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { "_id.date": 1 } }
+    ]);
+
     if (from || to) {
       filter.eventDate = {};
       if (from) filter.eventDate.$gte = new Date(from as string);
@@ -223,7 +237,8 @@ export const getDashboardMetrics = async (req: AuthRequest, res: Response) => {
       closedCases,
       byType,
       byGravedad,
-      byJornada
+      byJornada,
+      byDate
     });
 
   } catch (error) {
