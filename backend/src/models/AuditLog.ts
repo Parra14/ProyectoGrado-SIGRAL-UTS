@@ -6,6 +6,8 @@ export interface IAuditLog extends Document {
   entity: string;
   entityId: string;
   metadata?: any;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const AuditLogSchema: Schema<IAuditLog> = new Schema(

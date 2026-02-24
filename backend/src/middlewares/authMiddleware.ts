@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { Secret } from 'jsonwebtoken';
+import jwt, { Secret } from 'jsonwebtoken';
+import User from '../models/User';
 
 interface JwtPayload {
   id: string;
@@ -8,10 +8,10 @@ interface JwtPayload {
 }
 
 export interface AuthRequest extends Request {
-  user?: JwtPayload;
+  user?: any;
 }
 
-export const protect = (
+export const protect = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
@@ -28,10 +28,35 @@ export const protect = (
 
   try {
     const secret: Secret = process.env.JWT_SECRET as string;
-
     const decoded = jwt.verify(token, secret) as JwtPayload;
 
-    req.user = decoded;
+    // 🔍 Buscar usuario real en DB
+    const user = await User.findById(decoded.id);
+
+    if (!user || user.isDeleted) {
+      return res.status(401).json({ message: 'Usuario no válido' });
+    }
+
+    // 🔒 Verificar si está activo
+    if (!user.isActive) {
+      return res.status(403).json({ message: 'Usuario desactivado' });
+    }
+
+    // 🟡 Verificar expiración solo si es supervisor
+    if (
+      user.role === 'supervisor' &&
+      user.expiresAt &&
+      new Date() > user.expiresAt
+    ) {
+      return res.status(403).json({
+        message: 'El usuario supervisor ha expirado'
+      });
+    }
+
+    req.user = {
+      id: user._id,
+      role: user.role
+    };
 
     next();
   } catch (error) {

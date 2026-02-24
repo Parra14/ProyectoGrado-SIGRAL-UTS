@@ -36,7 +36,10 @@ import { AuthService } from '../../core/auth';
           Reportes
         </button>
 
-        <button *ngIf="role === 'admin'" mat-button>
+        <button
+          *ngIf="role === 'admin'"
+          mat-button
+          routerLink="/users">
           Usuarios
         </button>
 

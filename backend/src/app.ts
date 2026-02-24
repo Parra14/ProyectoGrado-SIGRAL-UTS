@@ -8,6 +8,9 @@ import connectDB from './config/database';
 import authRoutes from './routes/authRoutes';
 import categoryRoutes from './routes/categoryRoutes';
 import caseRoutes from './routes/caseRoutes';
+import userRoutes from './routes/userRoutes';
+import auditRoutes from './routes/auditRoutes';
+
 import path from 'path';
 
 
@@ -24,5 +27,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/cases', caseRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/api/users', userRoutes);
+app.use('/api/audit-logs', auditRoutes);
 
 export default app;
