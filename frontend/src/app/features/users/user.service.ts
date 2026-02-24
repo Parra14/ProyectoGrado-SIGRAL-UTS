@@ -16,7 +16,7 @@ export class UserService {
   }
 
   toggleStatus(id: string) {
-    return this.http.patch(`${this.api}/${id}/toggle-status`, {});
+    return this.http.patch(`${this.api}/${id}/status`, {});
   }
 
   resetPassword(id: string, password: string) {

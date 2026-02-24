@@ -8,6 +8,10 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserService } from './user.service';
+import { UserFormDialogComponent } from './dialogs/user-form-dialog/user-form-dialog';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog';
+import { AuthService } from '../../core/auth';
+import { ResetPasswordDialogComponent } from './dialogs/reset-password-dialog/reset-password-dialog';
 
 @Component({
   selector: 'app-users',
@@ -136,7 +140,9 @@ export class UsersComponent implements OnInit {
 
   constructor(
     private userService: UserService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -151,21 +157,61 @@ export class UsersComponent implements OnInit {
   }
 
   createUser() {
-    console.log('Abrir modal crear');
+    const dialogRef = this.dialog.open(UserFormDialogComponent, {
+      width: '500px'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) this.loadUsers();
+    });
   }
 
   editUser(user: any) {
-    console.log('Editar', user);
+    const dialogRef = this.dialog.open(UserFormDialogComponent, {
+      width: '500px',
+      data: user
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) this.loadUsers();
+    });
   }
 
   resetPassword(user: any) {
-    console.log('Reset password', user);
+    const dialogRef = this.dialog.open(ResetPasswordDialogComponent, {
+      width: '400px',
+      data: user
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) this.loadUsers();
+    });
   }
 
   toggleStatus(user: any) {
-    this.userService.toggleStatus(user._id).subscribe(() => {
-      this.snackBar.open('Estado actualizado', 'Cerrar', { duration: 3000 });
-      this.loadUsers();
+
+    const currentUserId = this.authService.getUserId();
+
+    if (user._id === currentUserId) {
+      this.snackBar.open('No puedes desactivarte a ti mismo', 'Cerrar', { duration: 3000 });
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: user.isActive ? 'Desactivar Usuario' : 'Activar Usuario',
+        message: `¿Seguro que deseas ${user.isActive ? 'desactivar' : 'activar'} este usuario?`
+      }
     });
-  }
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.userService.toggleStatus(user._id).subscribe(() => {
+          this.snackBar.open('Estado actualizado', 'Cerrar', { duration: 3000 });
+          this.loadUsers();
+        });
+      }
+    });
+}
 }
