@@ -61,6 +61,15 @@ export const routes: Routes = [
             .then(m => m.UsersComponent)
       },
 
+      {
+        path: 'audit',
+        canActivate: [roleGuard],
+        data: { role: 'admin' },
+        loadComponent: () =>
+          import('./features/audit/audit/audit')
+            .then(m => m.AuditComponent)
+      },
+
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

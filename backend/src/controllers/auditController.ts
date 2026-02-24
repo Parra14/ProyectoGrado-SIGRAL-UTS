@@ -2,6 +2,7 @@ import { Response } from 'express';
 import AuditLog from '../models/AuditLog';
 import { AuthRequest } from '../middlewares/authMiddleware';
 import { Parser } from 'json2csv';
+import User from '../models/User';
 
 export const getAuditLogs = async (req: AuthRequest, res: Response) => {
   try {
@@ -11,8 +12,28 @@ export const getAuditLogs = async (req: AuthRequest, res: Response) => {
 
     const filter: any = {};
 
-    if (req.query.userId) {
-      filter.userId = req.query.userId;
+    // 🔎 FILTRO POR USUARIO (nombre o email)
+    if (req.query.user) {
+      const userSearch = req.query.user as string;
+
+      const foundUser = await User.findOne({
+        $or: [
+          { name: { $regex: userSearch, $options: 'i' } },
+          { email: { $regex: userSearch, $options: 'i' } }
+        ],
+        isDeleted: false
+      });
+
+      if (foundUser) {
+        filter.userId = foundUser._id;
+      } else {
+        return res.json({
+          total: 0,
+          page,
+          pages: 0,
+          logs: []
+        });
+      }
     }
 
     if (req.query.action) {
@@ -64,8 +85,22 @@ export const exportAuditLogsCSV = async (req: AuthRequest, res: Response) => {
   try {
     const filter: any = {};
 
-    if (req.query.userId) {
-      filter.userId = req.query.userId;
+    if (req.query.user) {
+      const userSearch = req.query.user as string;
+
+      const foundUser = await User.findOne({
+        $or: [
+          { name: { $regex: userSearch, $options: 'i' } },
+          { email: { $regex: userSearch, $options: 'i' } }
+        ],
+        isDeleted: false
+      });
+
+      if (foundUser) {
+        filter.userId = foundUser._id;
+      } else {
+        return res.status(200).send(''); // CSV vacío
+      }
     }
 
     if (req.query.action) {
