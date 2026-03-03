@@ -4,7 +4,7 @@ import {
   getCategories,
   updateCategory,
   deleteCategory
-} from '../controllers/categoryController';
+} from '../controllers/category.controller';
 
 import { protect } from '../middlewares/authMiddleware';
 import { authorizeRoles } from '../middlewares/roleMiddleware';

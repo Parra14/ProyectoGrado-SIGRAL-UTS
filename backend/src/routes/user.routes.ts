@@ -6,7 +6,7 @@ import {
   toggleUserStatus,
   resetPassword,
   deleteUser
-} from '../controllers/userController';
+} from '../controllers/user.controller';
 
 import { protect } from '../middlewares/authMiddleware';
 import { authorizeRoles } from '../middlewares/roleMiddleware';

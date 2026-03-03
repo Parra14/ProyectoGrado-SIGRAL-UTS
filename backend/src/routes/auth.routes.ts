@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login } from '../controllers/authController';
+import { register, login } from '../controllers/auth.controller';
 import { protect } from '../middlewares/authMiddleware';
 import { authorizeRoles } from '../middlewares/roleMiddleware';
 

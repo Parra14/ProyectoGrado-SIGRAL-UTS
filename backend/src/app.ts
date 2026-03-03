@@ -5,11 +5,13 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import connectDB from './config/database';
-import authRoutes from './routes/authRoutes';
-import categoryRoutes from './routes/categoryRoutes';
-import caseRoutes from './routes/caseRoutes';
-import userRoutes from './routes/userRoutes';
-import auditRoutes from './routes/auditRoutes';
+import authRoutes from './routes/auth.routes';
+import categoryRoutes from './routes/category.routes';
+import caseRoutes from './routes/case.routes';
+import userRoutes from './routes/user.routes';
+import auditRoutes from './routes/audit.routes';
+import reportRoutes from './routes/report.routes';
+
 
 import path from 'path';
 
@@ -26,6 +28,7 @@ app.use(morgan('dev'));
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/cases', caseRoutes);
+app.use('/api/reports', reportRoutes);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/api/users', userRoutes);
 app.use('/api/audit-logs', auditRoutes);

@@ -1,16 +1,16 @@
 import { Router } from 'express';
-import { createCase } from '../controllers/caseController';
+import { createCase } from '../controllers/case.controller';
 import { protect } from '../middlewares/authMiddleware';
 import { authorizeRoles } from '../middlewares/roleMiddleware';
-import { getCases } from '../controllers/caseController';
-import { addComment, closeCase } from '../controllers/caseController';
+import { getCases } from '../controllers/case.controller';
+import { addComment, closeCase } from '../controllers/case.controller';
 import { upload } from '../config/multer';
-import { uploadEvidence } from '../controllers/caseController';
-import { getDashboardMetrics } from '../controllers/caseController';
-import { exportCasesCSV } from '../controllers/caseController';
-import { exportCasesPDF } from '../controllers/caseController';
-import { getCaseById } from '../controllers/caseController';
-import { updateCase } from '../controllers/caseController';
+import { uploadEvidence } from '../controllers/case.controller';
+import { getDashboardMetrics } from '../controllers/case.controller';
+import { exportCasesCSV } from '../controllers/case.controller';
+import { exportCasesPDF } from '../controllers/case.controller';
+import { getCaseById } from '../controllers/case.controller';
+import { updateCase } from '../controllers/case.controller';
 
 
 

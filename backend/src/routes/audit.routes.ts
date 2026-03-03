@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAuditLogs, exportAuditLogsCSV } from '../controllers/auditController';
+import { getAuditLogs, exportAuditLogsCSV } from '../controllers/audit.controller';
 import { protect } from '../middlewares/authMiddleware';
 import { authorizeRoles } from '../middlewares/roleMiddleware';
 
