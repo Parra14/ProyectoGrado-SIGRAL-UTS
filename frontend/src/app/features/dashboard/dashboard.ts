@@ -203,12 +203,21 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+
+    const today = new Date();
+
+    const last30Days = new Date();
+    last30Days.setDate(today.getDate() - 30);
+
     this.filterForm = this.fb.group({
-      from: [''],
-      to: ['']
+      from: [last30Days],
+      to: [today]
     });
 
-    this.loadMetrics();
+    this.loadMetrics({
+      from: last30Days,
+      to: today
+    });
   }
 
   loadMetrics(params: any = {}) {
@@ -299,7 +308,19 @@ export class DashboardComponent implements OnInit {
   }
 
   clearFilter() {
-    this.filterForm.reset();
-    this.loadMetrics();
+
+    const today = new Date();
+    const last30Days = new Date();
+    last30Days.setDate(today.getDate() - 30);
+
+    this.filterForm.patchValue({
+      from: last30Days,
+      to: today
+    });
+
+    this.loadMetrics({
+      from: last30Days,
+      to: today
+    });
   }
 }

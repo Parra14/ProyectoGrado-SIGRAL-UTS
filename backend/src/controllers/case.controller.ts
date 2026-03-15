@@ -8,12 +8,27 @@ import PDFDocument from 'pdfkit';
 
 export const createCase = async (req: AuthRequest, res: Response) => {
   try {
+
     const caseCode = await generateCaseCode();
+
+    const initialStatus =
+      req.body.tipoEventoPrincipal === 'ACCIDENTE'
+        ? 'REPORTAR_ARL'
+        : 'INVESTIGACION';
 
     const newCase = await Case.create({
       ...req.body,
       code: caseCode,
-      reportedBy: req.user!.id
+      status: initialStatus,
+      reportedBy: req.user!.id,
+      seguimientos: [
+        {
+          userId: req.user!.id,
+          message: 'Caso creado en el sistema',
+          type: 'SYSTEM',
+          toStatus: initialStatus
+        }
+      ]
     });
 
     await logAudit({
@@ -82,20 +97,51 @@ export const getCases = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const addComment = async (req: AuthRequest, res: Response) => {
+export const addSeguimiento = async (req: AuthRequest, res: Response) => {
   try {
+
     const { id } = req.params;
     const { message } = req.body;
 
     const caseDoc = await Case.findById(id);
 
     if (!caseDoc || caseDoc.isDeleted) {
-      return res.status(404).json({ message: 'Caso no encontrado' });
+      return res.status(404).json({ message: "Caso no encontrado" });
     }
 
-    caseDoc.comments.push({
+    if (!message || message.trim() === "") {
+      return res.status(400).json({
+        message: "Debe ingresar un comentario"
+      });
+    }
+
+    console.log("FILE:", req.file);
+    console.log("FILES:", req.files);
+    const evidences: string[] = [];
+
+    if (req.files && Array.isArray(req.files)) {
+
+      const files = req.files as Express.Multer.File[];
+
+      files.forEach(file => {
+        evidences.push(`/uploads/${caseDoc.code}/${file.filename}`);
+      });
+
+    }
+
+    /*if (req.files) {
+
+      const file = req.file as Express.Multer.File;
+
+      evidences.push(`/uploads/${caseDoc.code}/${file.filename}`);
+
+    }*/
+
+    caseDoc.seguimientos.push({
       userId: req.user!.id,
       message,
+      type: "COMMENT",
+      evidences,
       createdAt: new Date()
     });
 
@@ -103,17 +149,174 @@ export const addComment = async (req: AuthRequest, res: Response) => {
 
     await logAudit({
       userId: req.user!.id,
-      action: 'ADD_COMMENT',
-      entity: 'Case',
+      action: "ADD_SEGUIMIENTO",
+      entity: "Case",
       entityId: caseDoc._id.toString(),
       metadata: { message }
     });
 
-    res.json({ message: 'Comentario agregado correctamente' });
+    res.json({
+      message: "Seguimiento agregado correctamente"
+    });
 
   } catch (error) {
-    res.status(500).json({ message: 'Error agregando comentario', error });
+
+    res.status(500).json({
+      message: "Error agregando seguimiento",
+      error
+    });
+
   }
+};
+
+export const changeStatus = async (req: AuthRequest, res: Response) => {
+
+  try {
+
+    const { id } = req.params;
+    const { newStatus, message } = req.body;
+
+    const caseDoc = await Case.findById(id);
+
+    if (!caseDoc || caseDoc.isDeleted) {
+      return res.status(404).json({ message: 'Caso no encontrado' });
+    }
+
+    const oldStatus = caseDoc.status;
+
+    caseDoc.status = newStatus;
+
+    caseDoc.seguimientos.push({
+      userId: req.user!.id,
+      message,
+      type: 'STATUS_CHANGE',
+      fromStatus: oldStatus,
+      toStatus: newStatus,
+      createdAt: new Date()
+    });
+
+    await caseDoc.save();
+
+    await logAudit({
+      userId: req.user!.id,
+      action: 'CHANGE_STATUS',
+      entity: 'Case',
+      entityId: caseDoc._id.toString(),
+      metadata: {
+        from: oldStatus,
+        to: newStatus
+      }
+    });
+
+    res.json({ message: 'Estado actualizado correctamente' });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Error cambiando estado', error });
+  }
+
+};
+
+export const advanceStatus = async (req: AuthRequest, res: Response) => {
+
+  try {
+
+    const { id } = req.params;
+    const { message } = req.body;
+
+    const caseDoc = await Case.findById(id);
+
+    if (!caseDoc || caseDoc.isDeleted) {
+      return res.status(404).json({ message: "Caso no encontrado" });
+    }
+
+    if (caseDoc.status === "CERRADO") {
+      return res.status(400).json({
+        message: "El caso ya está cerrado"
+      });
+    }
+
+    const STATUS_FLOW: any = {
+      REPORTAR_ARL: "INVESTIGACION",
+      INVESTIGACION: "PLAN_ACCION",
+      PLAN_ACCION: "CERRADO"
+    };
+
+    const oldStatus = caseDoc.status;
+    const nextStatus = STATUS_FLOW[oldStatus];
+
+    if (!nextStatus) {
+      return res.status(400).json({
+        message: "No existe transición válida"
+      });
+    }
+
+    /* ===============================
+       EVIDENCIAS
+    =============================== */
+    console.log("FILE:", req.file);
+    console.log("FILES:", req.files);
+    const evidences: string[] = [];
+
+    // Caso upload.array()
+    if (req.files && Array.isArray(req.files)) {
+
+      const files = req.files as Express.Multer.File[];
+
+      files.forEach(file => {
+        evidences.push(`/uploads/${caseDoc.code}/${file.filename}`);
+      });
+
+    }
+
+    // Caso upload.single()
+    if (req.file) {
+
+      const file = req.file as Express.Multer.File;
+
+      evidences.push(`/uploads/${caseDoc.code}/${file.filename}`);
+
+    }
+
+    /* ===============================
+       CAMBIO DE ESTADO
+    =============================== */
+
+    caseDoc.status = nextStatus;
+
+    caseDoc.seguimientos.push({
+      userId: req.user!.id,
+      message,
+      type: "STATUS_CHANGE",
+      fromStatus: oldStatus,
+      toStatus: nextStatus,
+      evidences,
+      createdAt: new Date()
+    });
+
+    await caseDoc.save();
+
+    await logAudit({
+      userId: req.user!.id,
+      action: "CHANGE_STATUS",
+      entity: "Case",
+      entityId: caseDoc._id.toString(),
+      metadata: {
+        from: oldStatus,
+        to: nextStatus
+      }
+    });
+
+    res.json({
+      message: `Estado cambiado de ${oldStatus} a ${nextStatus}`
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Error cambiando estado",
+      error
+    });
+  }
+
 };
 
 export const closeCase = async (req: AuthRequest, res: Response) => {
@@ -162,14 +365,16 @@ export const uploadEvidence = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: 'No se envió archivo' });
     }
 
-    caseDoc.evidences.push(`/uploads/${caseDoc.code}/${req.file.filename}`);
-    await caseDoc.save();
+  caseDoc.evidences.push(`/uploads/${caseDoc.code}/${req.file.filename}`);
+      await caseDoc.save();
 
-    caseDoc.comments.push({
-      userId: req.user!.id,
-      message: `Se cargó la evidencia: ${req.file.originalname}`,
-      createdAt: new Date()
-    });
+  caseDoc.seguimientos.push({
+    userId: req.user!.id,
+    message: `Se cargó la evidencia: ${req.file.originalname}`,
+    type: 'COMMENT',
+    evidences: [`/uploads/${caseDoc.code}/${req.file.filename}`],
+    createdAt: new Date()
+  });
     
     await logAudit({
       userId: req.user!.id,
@@ -209,7 +414,7 @@ export const getDashboardMetrics = async (req: AuthRequest, res: Response) => {
 
     // ✅ MÉTRICAS BÁSICAS
     const totalCases = await Case.countDocuments(filter);
-    const openCases = await Case.countDocuments({ ...filter, status: 'ABIERTO' });
+    const openCases = await Case.countDocuments({  ...filter,  status: { $ne: 'CERRADO' }});
     const closedCases = await Case.countDocuments({ ...filter, status: 'CERRADO' });
 
     // ✅ POR TIPO
@@ -382,18 +587,39 @@ export const getCaseById = async (req: AuthRequest, res: Response) => {
 };
 
 export const updateCase = async (req: AuthRequest, res: Response) => {
+
   try {
+
     const caseDoc = await Case.findById(req.params.id);
 
     if (!caseDoc || caseDoc.isDeleted) {
       return res.status(404).json({ message: 'Caso no encontrado' });
     }
 
+    const oldTipo = caseDoc.tipoEventoPrincipal;
+
     Object.assign(caseDoc, req.body);
+
+    if (oldTipo === 'INCIDENTE' && req.body.tipoEventoPrincipal === 'ACCIDENTE') {
+
+      caseDoc.status = 'REPORTAR_ARL';
+
+      caseDoc.seguimientos.push({
+        userId: req.user!.id,
+        message: 'Tipo de evento cambiado de INCIDENTE a ACCIDENTE. Flujo reiniciado para reporte ARL.',
+        type: 'SYSTEM',
+        toStatus: 'REPORTAR_ARL',
+        createdAt: new Date()
+      });
+
+    }
+
     await caseDoc.save();
 
     res.json({ message: 'Caso actualizado correctamente' });
+
   } catch (error) {
     res.status(500).json({ message: 'Error actualizando caso', error });
   }
+
 };

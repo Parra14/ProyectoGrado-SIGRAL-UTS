@@ -3,7 +3,7 @@ import { createCase } from '../controllers/case.controller';
 import { protect } from '../middlewares/authMiddleware';
 import { authorizeRoles } from '../middlewares/roleMiddleware';
 import { getCases } from '../controllers/case.controller';
-import { addComment, closeCase } from '../controllers/case.controller';
+import { addSeguimiento, closeCase, changeStatus , advanceStatus} from '../controllers/case.controller';
 import { upload } from '../config/multer';
 import { uploadEvidence } from '../controllers/case.controller';
 import { getDashboardMetrics } from '../controllers/case.controller';
@@ -47,10 +47,17 @@ router.get(
 );
 
 router.post(
-  '/:id/comment',
+  "/:id/seguimiento",
   protect,
-  authorizeRoles('admin', 'usuario'),
-  addComment
+  upload.array("file"),
+  addSeguimiento
+);
+
+router.patch(
+  '/:id/status',
+  protect,
+  upload.array('file'), 
+  advanceStatus
 );
 
 router.patch(
