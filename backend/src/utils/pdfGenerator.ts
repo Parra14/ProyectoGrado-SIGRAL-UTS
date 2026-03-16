@@ -26,6 +26,23 @@ export const generateCasesPDF = (
 
   doc.pipe(res);
 
+  const usableWidth =
+    doc.page.width - doc.page.margins.left - doc.page.margins.right;
+
+  /*
+  ==========================================
+  🔧 AJUSTE IMPORTANTE
+
+  Este valor controla que el texto no invada
+  el diseño verde del template.
+
+  Si cambian el diseño del fondo,
+  solo modifiquen este número.
+
+  ==========================================
+  */
+  const CONTENT_WIDTH = usableWidth - 60;
+
   const templatePath = path.join(process.cwd(), 'uploads', 'template-uts.png');
 
   const drawBackground = () => {
@@ -42,19 +59,20 @@ export const generateCasesPDF = (
     drawBackground();
   };
 
-  // Primera página
   drawBackground();
 
-  /* =====================================================
+  /* ======================================
      ENCABEZADO
-  ===================================================== */
+  ====================================== */
 
   doc.moveDown(3);
 
   doc
     .fontSize(16)
     .font('Helvetica-Bold')
-    .text('Reporte Institucional de Casos SST', { align: 'center' });
+    .text('Reporte Institucional de Casos SST', {
+      align: 'center'
+    });
 
   doc.moveDown(1.5);
 
@@ -64,100 +82,102 @@ export const generateCasesPDF = (
     .text(`Fecha generación: ${new Date().toLocaleString()}`)
     .text(`Generado por: ${generatedBy}`);
 
-  if (filters && Object.keys(filters).length) {
-    doc.moveDown(0.5);
-    doc.font('Helvetica-Bold').text('Filtros aplicados:');
-    doc.font('Helvetica');
-
-    Object.entries(filters).forEach(([key, value]) => {
-      doc.text(`- ${key}: ${value}`);
-    });
-  }
-
   doc.moveDown(2);
 
-  /* =====================================================
+  /* ======================================
      TABLA RESUMEN
-  ===================================================== */
+  ====================================== */
 
   doc.fontSize(13)
     .font('Helvetica-Bold')
     .text('Resumen General de Casos', { underline: true });
 
-  doc.moveDown(1);
+  doc.moveDown();
 
   const startX = doc.page.margins.left;
-  const usableWidth =
-    doc.page.width - doc.page.margins.left - doc.page.margins.right;
-
-  const rowHeight = 22;
-  let currentY = doc.y;
 
   const columns = [
-    { header: 'Código', width: usableWidth * 0.18 },
-    { header: 'Fecha', width: usableWidth * 0.14 },
-    { header: 'Tipo', width: usableWidth * 0.18 },
-    { header: 'Estado', width: usableWidth * 0.16 },
-    { header: 'Gravedad', width: usableWidth * 0.17 },
-    { header: 'Jornada', width: usableWidth * 0.17 }
+    { header: 'Código', width: usableWidth * 0.22 },
+    { header: 'Fecha', width: usableWidth * 0.15 },
+    { header: 'Tipo', width: usableWidth * 0.16 },
+    { header: 'Estado', width: usableWidth * 0.17 },
+    { header: 'Gravedad', width: usableWidth * 0.15 },
+    { header: 'Jornada', width: usableWidth * 0.15 }
   ];
 
+  let currentY = doc.y;
+
   const drawHeader = () => {
+
     let x = startX;
+
     doc.font('Helvetica-Bold').fontSize(10);
 
     columns.forEach(col => {
+
       doc.text(col.header, x, currentY, {
         width: col.width,
         align: 'center'
       });
+
       x += col.width;
+
     });
 
-    currentY += rowHeight;
+    currentY += 20;
 
-    doc.moveTo(startX, currentY - 8)
-       .lineTo(startX + usableWidth, currentY - 8)
+    doc.moveTo(startX, currentY - 5)
+       .lineTo(startX + usableWidth, currentY - 5)
        .stroke();
 
     doc.font('Helvetica');
+
   };
 
   drawHeader();
 
   cases.forEach(c => {
 
-    if (currentY > doc.page.height - 100) {
+    if (currentY > doc.page.height - 120) {
+
       addPage();
       currentY = doc.page.margins.top;
+
       drawHeader();
+
     }
 
     let x = startX;
+
+    const estadoBonito = c.status.replace('_', ' ');
 
     const row = [
       c.code,
       new Date(c.eventDate).toLocaleDateString(),
       c.tipoEventoPrincipal,
-      c.status,
+      estadoBonito,
       c.gradoGravedad,
       c.jornada
     ];
 
     row.forEach((cell, i) => {
+
       doc.text(cell, x, currentY, {
         width: columns[i].width,
         align: 'center'
       });
+
       x += columns[i].width;
+
     });
 
-    currentY += rowHeight;
+    currentY += 20;
+
   });
 
-  /* =====================================================
-     DETALLE POR CASO
-  ===================================================== */
+  /* ======================================
+     DETALLE DE CASOS
+  ====================================== */
 
   cases.forEach(c => {
 
@@ -168,87 +188,133 @@ export const generateCasesPDF = (
       .text(`CASO: ${c.code}`, { underline: true });
 
     doc.moveDown();
+
     doc.fontSize(11).font('Helvetica');
 
     doc.text(`Fecha Evento: ${new Date(c.eventDate).toLocaleDateString()}`);
     doc.text(`Tipo: ${c.tipoEventoPrincipal}`);
-    doc.text(`Estado: ${c.status}`);
+    doc.text(`Estado: ${c.status.replace('_', ' ')}`);
     doc.text(`Gravedad: ${c.gradoGravedad}`);
     doc.text(`Jornada: ${c.jornada}`);
+
     doc.moveDown();
 
     doc.font('Helvetica-Bold').text('Información del Trabajador:');
-    doc.font('Helvetica');
-    doc.text(`Nombre: ${c.employeeName}`);
-    doc.text(`Documento: ${c.employeeId}`);
-    doc.text(`Jefe inmediato: ${c.jefeInmediato}`);
+
+    doc.font('Helvetica')
+      .text(`Nombre: ${c.employeeName}`)
+      .text(`Documento: ${c.employeeId}`)
+      .text(`Jefe inmediato: ${c.jefeInmediato}`);
+
     doc.moveDown();
 
     doc.font('Helvetica-Bold').text('Descripción del evento:');
-    doc.font('Helvetica');
-    doc.text(c.descripcionEvento);
+
+    doc.font('Helvetica')
+      .text(c.descripcionEvento, {
+        width: CONTENT_WIDTH
+      });
+
     doc.moveDown();
 
-    if (c.comments?.length) {
+    /* ======================================
+       SEGUIMIENTOS
+    ====================================== */
+
+    if (c.seguimientos?.length) {
+
       doc.font('Helvetica-Bold')
-        .text('Comentarios:', { underline: true });
+        .text('Seguimientos:', { underline: true });
 
-      doc.moveDown(0.5);
-      doc.font('Helvetica');
+      doc.moveDown();
 
-      c.comments.forEach((comment: any) => {
+      c.seguimientos.forEach((seg: any) => {
+
+        if (doc.y > doc.page.height - 180) {
+          addPage();
+        }
+
         const author =
-          typeof comment.userId === 'object' && comment.userId?.name
-            ? comment.userId.name
+          typeof seg.userId === 'object' && seg.userId?.name
+            ? seg.userId.name
             : 'Usuario';
 
-        doc.text(
-          `[${new Date(comment.createdAt).toLocaleString()}] ${author}: ${comment.message}`
-        );
-      });
+        const fecha = new Date(seg.createdAt).toLocaleString();
 
-      doc.moveDown();
-    }
+        doc.moveDown(0.6);
 
-    if (c.evidences?.length) {
-      doc.font('Helvetica-Bold')
-        .text('Evidencias:', { underline: true });
+        doc.font('Helvetica-Bold')
+           .text(`[${fecha}] ${author}`);
 
-      doc.moveDown();
-      doc.font('Helvetica');
+        doc.font('Helvetica')
+           .text(seg.message || '', {
+             width: CONTENT_WIDTH
+           });
 
-      c.evidences.forEach((ev: string) => {
+        doc.moveDown(0.5);
 
-        const absolutePath = path.join(process.cwd(), ev);
-        const ext = path.extname(ev).toLowerCase();
+        /* ======================================
+           EVIDENCIAS
+        ====================================== */
 
-        if (['.png', '.jpg', '.jpeg'].includes(ext) &&
-            fs.existsSync(absolutePath)) {
+        if (seg.evidences?.length) {
 
-          if (doc.y + 250 > doc.page.height - 100) {
-            addPage();
-          }
+          doc.font('Helvetica-Bold')
+             .text('Evidencias:');
 
-          doc.image(absolutePath, {
-            fit: [450, 250],
-            align: 'center'
+          doc.moveDown(0.4);
+
+          seg.evidences.forEach((ev: string) => {
+
+            const cleanPath = ev.startsWith('/')
+              ? ev.slice(1)
+              : ev;
+
+            const absolutePath = path.join(process.cwd(), cleanPath);
+
+            const ext = path.extname(ev).toLowerCase();
+
+            if (
+              ['.png', '.jpg', '.jpeg'].includes(ext) &&
+              fs.existsSync(absolutePath)
+            ) {
+
+              if (doc.y > doc.page.height - 260) {
+                addPage();
+              }
+
+              doc.image(absolutePath, {
+                fit: [420, 230],
+                align: 'center'
+              });
+
+              doc.moveDown(0.5);
+
+              doc.fontSize(9)
+                .fillColor('gray')
+                .text(path.basename(ev), { align: 'center' });
+
+              doc.fillColor('black');
+              doc.fontSize(11);
+
+            } else {
+
+              doc.text(`Archivo adjunto: ${path.basename(ev)}`);
+
+            }
+
+            doc.moveDown(0.6);
+
           });
 
-          doc.moveDown(0.5);
-
-          doc.fontSize(9)
-            .fillColor('gray')
-            .text(path.basename(ev), { align: 'center' });
-
-          doc.fillColor('black');
-          doc.moveDown();
-
-        } else {
-          doc.text(`Archivo adjunto: ${ev}`);
         }
+
       });
+
     }
+
   });
 
   doc.end();
+
 };

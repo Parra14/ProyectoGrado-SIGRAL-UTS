@@ -4,7 +4,8 @@ import generateCaseCode from '../utils/generateCaseCode';
 import logAudit from '../utils/auditLogger';
 import { AuthRequest } from '../middlewares/authMiddleware';
 import PDFDocument from 'pdfkit';
-
+import { Parser } from 'json2csv';
+import { buildCaseFilter } from '../utils/buildCaseFilter';
 
 export const createCase = async (req: AuthRequest, res: Response) => {
   try {
@@ -50,32 +51,15 @@ export const createCase = async (req: AuthRequest, res: Response) => {
 };
 
 export const getCases = async (req: AuthRequest, res: Response) => {
+
   try {
+
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+
     const skip = (page - 1) * limit;
 
-    const {
-      tipo,
-      estado,
-      grado,
-      from,
-      to,
-      code
-    } = req.query;
-
-    const filter: any = { isDeleted: false };
-
-    if (tipo) filter.tipoEventoPrincipal = tipo;
-    if (estado) filter.status = estado;
-    if (grado) filter.gradoGravedad = grado;
-    if (code) filter.code = code;
-
-    if (from || to) {
-      filter.eventDate = {};
-      if (from) filter.eventDate.$gte = new Date(from as string);
-      if (to) filter.eventDate.$lte = new Date(to as string);
-    }
+    const filter = buildCaseFilter(req.query);
 
     const total = await Case.countDocuments(filter);
 
@@ -85,16 +69,24 @@ export const getCases = async (req: AuthRequest, res: Response) => {
       .limit(limit);
 
     res.json({
+
       page,
       limit,
       total,
       totalPages: Math.ceil(total / limit),
       data: cases
+
     });
 
   } catch (error) {
-    res.status(500).json({ message: 'Error obteniendo casos', error });
+
+    res.status(500).json({
+      message: "Error obteniendo casos",
+      error
+    });
+
   }
+
 };
 
 export const addSeguimiento = async (req: AuthRequest, res: Response) => {
@@ -109,10 +101,12 @@ export const addSeguimiento = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: "Caso no encontrado" });
     }
 
-    if (!message || message.trim() === "") {
+    if ((!message || message.trim() === "") && !req.files?.length) {
+
       return res.status(400).json({
-        message: "Debe ingresar un comentario"
+        message: "Debe ingresar un comentario o adjuntar evidencia"
       });
+
     }
 
     console.log("FILE:", req.file);
@@ -129,13 +123,6 @@ export const addSeguimiento = async (req: AuthRequest, res: Response) => {
 
     }
 
-    /*if (req.files) {
-
-      const file = req.file as Express.Multer.File;
-
-      evidences.push(`/uploads/${caseDoc.code}/${file.filename}`);
-
-    }*/
 
     caseDoc.seguimientos.push({
       userId: req.user!.id,
@@ -167,53 +154,6 @@ export const addSeguimiento = async (req: AuthRequest, res: Response) => {
     });
 
   }
-};
-
-export const changeStatus = async (req: AuthRequest, res: Response) => {
-
-  try {
-
-    const { id } = req.params;
-    const { newStatus, message } = req.body;
-
-    const caseDoc = await Case.findById(id);
-
-    if (!caseDoc || caseDoc.isDeleted) {
-      return res.status(404).json({ message: 'Caso no encontrado' });
-    }
-
-    const oldStatus = caseDoc.status;
-
-    caseDoc.status = newStatus;
-
-    caseDoc.seguimientos.push({
-      userId: req.user!.id,
-      message,
-      type: 'STATUS_CHANGE',
-      fromStatus: oldStatus,
-      toStatus: newStatus,
-      createdAt: new Date()
-    });
-
-    await caseDoc.save();
-
-    await logAudit({
-      userId: req.user!.id,
-      action: 'CHANGE_STATUS',
-      entity: 'Case',
-      entityId: caseDoc._id.toString(),
-      metadata: {
-        from: oldStatus,
-        to: newStatus
-      }
-    });
-
-    res.json({ message: 'Estado actualizado correctamente' });
-
-  } catch (error) {
-    res.status(500).json({ message: 'Error cambiando estado', error });
-  }
-
 };
 
 export const advanceStatus = async (req: AuthRequest, res: Response) => {
@@ -319,78 +259,6 @@ export const advanceStatus = async (req: AuthRequest, res: Response) => {
 
 };
 
-export const closeCase = async (req: AuthRequest, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    const caseDoc = await Case.findById(id);
-
-    if (!caseDoc || caseDoc.isDeleted) {
-      return res.status(404).json({ message: 'Caso no encontrado' });
-    }
-
-    if (caseDoc.status === 'CERRADO') {
-      return res.status(400).json({ message: 'El caso ya está cerrado' });
-    }
-
-    caseDoc.status = 'CERRADO';
-    await caseDoc.save();
-
-    await logAudit({
-      userId: req.user!.id,
-      action: 'CLOSE_CASE',
-      entity: 'Case',
-      entityId: caseDoc._id.toString(),
-      metadata: { code: caseDoc.code }
-    });
-
-    res.json({ message: 'Caso cerrado correctamente' });
-
-  } catch (error) {
-    res.status(500).json({ message: 'Error cerrando caso', error });
-  }
-};
-
-export const uploadEvidence = async (req: AuthRequest, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    const caseDoc = await Case.findById(id);
-
-    if (!caseDoc || caseDoc.isDeleted) {
-      return res.status(404).json({ message: 'Caso no encontrado' });
-    }
-
-    if (!req.file) {
-      return res.status(400).json({ message: 'No se envió archivo' });
-    }
-
-  caseDoc.evidences.push(`/uploads/${caseDoc.code}/${req.file.filename}`);
-      await caseDoc.save();
-
-  caseDoc.seguimientos.push({
-    userId: req.user!.id,
-    message: `Se cargó la evidencia: ${req.file.originalname}`,
-    type: 'COMMENT',
-    evidences: [`/uploads/${caseDoc.code}/${req.file.filename}`],
-    createdAt: new Date()
-  });
-    
-    await logAudit({
-      userId: req.user!.id,
-      action: 'UPLOAD_EVIDENCE',
-      entity: 'Case',
-      entityId: caseDoc._id.toString(),
-      metadata: { file: req.file.filename }
-    });
-
-    res.json({ message: 'Evidencia subida correctamente' });
-
-  } catch (error) {
-    res.status(500).json({ message: 'Error subiendo evidencia', error });
-  }
-};
-
 export const getDashboardMetrics = async (req: AuthRequest, res: Response) => {
   try {
     const { from, to } = req.query;
@@ -469,107 +337,125 @@ export const getDashboardMetrics = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Error obteniendo métricas', error });
   }
 };
-import { Parser } from 'json2csv';
 
 export const exportCasesCSV = async (req: AuthRequest, res: Response) => {
+
   try {
-    const { tipo, estado, grado, from, to } = req.query;
 
-    const filter: any = { isDeleted: false };
-
-    if (tipo) filter.tipoEventoPrincipal = tipo;
-    if (estado) filter.status = estado;
-    if (grado) filter.gradoGravedad = grado;
-
-    if (from || to) {
-      filter.eventDate = {};
-      if (from) filter.eventDate.$gte = new Date(from as string);
-      if (to) filter.eventDate.$lte = new Date(to as string);
-    }
+    const filter = buildCaseFilter(req.query);
 
     const cases = await Case.find(filter)
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     const formatted = cases.map(c => ({
+
       Codigo: c.code,
       FechaEvento: c.eventDate,
       Tipo: c.tipoEventoPrincipal,
       Gravedad: c.gradoGravedad,
       Estado: c.status,
       Trabajador: c.employeeName,
-      Identificacion: c.employeeId,
+      Documento: c.employeeId,
+      JefeInmediato: c.jefeInmediato,
       Jornada: c.jornada,
-      Categoria: c.categoriaEvento,
-      Lugar: c.lugarExacto
+      CategoriaEvento: c.categoriaEvento,
+      Lugar: c.lugarExacto,
+      Descripcion: c.descripcionEvento,
+      TotalSeguimientos: c.seguimientos?.length || 0,
+      FechaCreacion: (c as any).createdAt
+
     }));
 
     const parser = new Parser();
+
     const csv = parser.parse(formatted);
 
-    res.header('Content-Type', 'text/csv');
-    res.attachment('reporte_casos.csv');
+    res.header("Content-Type", "text/csv");
+    res.attachment("reporte_casos.csv");
+
     res.send(csv);
 
   } catch (error) {
-    res.status(500).json({ message: 'Error exportando CSV', error });
+
+    res.status(500).json({
+      message: "Error exportando CSV",
+      error
+    });
+
   }
+
 };
 
 export const exportCasesPDF = async (req: AuthRequest, res: Response) => {
+
   try {
-    const { tipo, estado, grado, from, to } = req.query;
 
-    const filter: any = { isDeleted: false };
-
-    if (tipo) filter.tipoEventoPrincipal = tipo;
-    if (estado) filter.status = estado;
-    if (grado) filter.gradoGravedad = grado;
-
-    if (from || to) {
-      filter.eventDate = {};
-      if (from) filter.eventDate.$gte = new Date(from as string);
-      if (to) filter.eventDate.$lte = new Date(to as string);
-    }
+    const filter = buildCaseFilter(req.query);
 
     const cases = await Case.find(filter)
       .sort({ createdAt: -1 });
 
     const doc = new PDFDocument({ margin: 40 });
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename=reporte_casos.pdf');
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=reporte_casos.pdf"
+    );
 
     doc.pipe(res);
 
-    // 🔹 Encabezado
-    doc.fontSize(18).text('SIGRAL-UTS', { align: 'center' });
+    doc.fontSize(18).text("SIGRAL-UTS", { align: "center" });
     doc.moveDown();
-    doc.fontSize(14).text('Reporte de Accidentes e Incidentes', { align: 'center' });
+
+    doc.fontSize(14)
+       .text("Reporte de Accidentes e Incidentes", { align: "center" });
+
     doc.moveDown();
-    doc.fontSize(10).text(`Fecha de generación: ${new Date().toLocaleString()}`);
+
+    doc.fontSize(10)
+       .text(`Fecha de generación: ${new Date().toLocaleString()}`);
+
     doc.moveDown(2);
 
-    // 🔹 Tabla básica
     doc.fontSize(10);
-    doc.text('Código | Fecha | Tipo | Gravedad | Estado | Trabajador | Categoría');
+
+    doc.text(
+      "Código | Fecha | Tipo | Gravedad | Estado | Trabajador | Categoría"
+    );
+
     doc.moveDown();
 
     cases.forEach(c => {
+
       doc.text(
-        `${c.code} | ${c.eventDate.toISOString().split('T')[0]} | ${c.tipoEventoPrincipal} | ${c.gradoGravedad} | ${c.status} | ${c.employeeName} | ${c.categoriaEvento}`
+        `${c.code} | ${
+          c.eventDate.toISOString().split("T")[0]
+        } | ${c.tipoEventoPrincipal} | ${
+          c.gradoGravedad
+        } | ${c.status} | ${c.employeeName} | ${c.categoriaEvento}`
       );
+
       doc.moveDown(0.5);
+
     });
 
     doc.moveDown(2);
 
-    // 🔹 Totales
     doc.text(`Total casos: ${cases.length}`);
+
     doc.end();
 
   } catch (error) {
-    res.status(500).json({ message: 'Error exportando PDF', error });
+
+    res.status(500).json({
+      message: "Error exportando PDF",
+      error
+    });
+
   }
+
 };
 
 export const getCaseById = async (req: AuthRequest, res: Response) => {

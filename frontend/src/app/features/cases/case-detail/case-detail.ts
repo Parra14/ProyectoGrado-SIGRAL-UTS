@@ -1,14 +1,8 @@
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { NgFor, NgIf } from '@angular/common';
-import { CaseService } from '../case.service';
+import { NgFor, NgIf, DatePipe } from '@angular/common';
 import { CommonModule } from '@angular/common';
-import { NotificationService } from '../../../core/services/notification.service';
-import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-case-detail',
@@ -17,160 +11,197 @@ import { ChangeDetectorRef } from '@angular/core';
     CommonModule,
     MatDialogModule,
     MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    ReactiveFormsModule,
     NgFor,
-    NgIf
+    NgIf,
+    DatePipe
   ],
   template: `
-    <h2 mat-dialog-title>Detalle del Caso</h2>
+  <h2 mat-dialog-title>Detalle del Caso</h2>
 
-    <mat-dialog-content>
+  <mat-dialog-content class="content">
 
-      <p><strong>Código:</strong> {{ data.code }}</p>
-      <p><strong>Trabajador:</strong> {{ data.employeeName }}</p>
-      <p><strong>Tipo:</strong> {{ data.tipoEventoPrincipal }}</p>
-      <p><strong>Estado:</strong> {{ data.status }}</p>
+  <!-- DATOS GENERALES -->
+  <h3>Información del Caso</h3>
 
-      <h3>Evidencias</h3>
+  <div class="grid">
 
-      <div *ngIf="data.evidences?.length; else noEvidences">
-        <div *ngFor="let ev of data.evidences">
-          <a [href]="'http://localhost:4000' + ev" target="_blank">
-            {{ ev.split('/').pop() }}
-          </a>
-        </div>
-      </div>
+  <p><strong>Código:</strong> {{ data.code }}</p>
+  <p><strong>Estado:</strong> {{ data.status }}</p>
+  <p><strong>Tipo:</strong> {{ data.tipoEventoPrincipal }}</p>
+  <p><strong>Gravedad:</strong> {{ data.gradoGravedad }}</p>
 
-      <ng-template #noEvidences>
-        <p>No hay evidencias cargadas.</p>
-      </ng-template>
+  <p><strong>Trabajador:</strong> {{ data.employeeName }}</p>
+  <p><strong>Documento:</strong> {{ data.employeeId }}</p>
+  <p><strong>Jefe Inmediato:</strong> {{ data.jefeInmediato }}</p>
 
-      <button mat-raised-button color="accent" (click)="fileInput.click()">
-        Seleccionar Evidencia
-      </button>
+  <p><strong>Jornada:</strong> {{ data.jornada }}</p>
+  <p><strong>Lugar:</strong> {{ data.lugarExacto }}</p>
+  <p><strong>Categoría:</strong> {{ data.categoriaEvento }}</p>
 
-      <input
-        #fileInput
-        type="file"
-        hidden
-        (change)="onFileSelected($event)"
-      />
+  </div>
 
-      <button
-        mat-raised-button
-        color="primary"
-        (click)="uploadSelectedFile()"
-        [disabled]="!selectedFile"
-      >
-        Subir Evidencia
-      </button>
+  <h3>Descripción del Evento</h3>
 
-      <h3>Comentarios</h3>
+  <p class="description">
+  {{ data.descripcionEvento }}
+  </p>
 
-      <div *ngIf="data.comments?.length; else noComments">
-        <div *ngFor="let c of data.comments">
-          <p>
-            • {{ c.message }}
-            <small>({{ c.createdAt | date:'short' }})</small>
-          </p>
-        </div>
-      </div>
+  <!-- SEGUIMIENTO -->
+  <h3>Historial de Seguimiento</h3>
 
-      <ng-template #noComments>
-        <p>No hay comentarios.</p>
-      </ng-template>
+  <div *ngIf="data.seguimientos?.length; else noSeguimientos">
 
-      <form [formGroup]="form" (ngSubmit)="addComment()">
+  <div *ngFor="let s of data.seguimientos"
+     class="timeline-item"
+     [ngClass]="getTimelineClass(s.type)">
+     
+  <div class="timeline-header">
+  
 
-        <mat-form-field appearance="outline" class="full">
-          <mat-label>Nuevo Comentario</mat-label>
-          <textarea matInput formControlName="message"></textarea>
-        </mat-form-field>
+  <strong>{{ getTypeLabel(s.type) }}</strong>
 
-        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
-          Agregar Comentario
-        </button>
+  <span>
+  {{ s.createdAt | date:'short' }}
+  </span>
 
-      </form>
+  </div>
 
-    </mat-dialog-content>
+  <p class="message">
+  {{ s.message }}
+  </p>
 
-    <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Cerrar</button>
-    </mat-dialog-actions>
+  <!-- CAMBIO DE ESTADO -->
+  <div *ngIf="s.type === 'STATUS_CHANGE'" class="status-change">
+
+  Estado:
+  <strong>{{ s.fromStatus }}</strong>
+  →
+  <strong>{{ s.toStatus }}</strong>
+
+  </div>
+
+  <!-- EVIDENCIAS -->
+  <div *ngIf="s.evidences?.length" class="evidences">
+
+  <div *ngFor="let ev of s.evidences">
+
+  📎
+  <a
+  [href]="'http://localhost:4000' + ev"
+  target="_blank">
+
+  {{ ev.split('/').pop() }}
+
+  </a>
+
+  </div>
+
+  </div>
+
+  </div>
+
+  </div>
+
+  <ng-template #noSeguimientos>
+  <p>No hay seguimiento registrado.</p>
+  </ng-template>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cerrar</button>
+  </mat-dialog-actions>
   `,
   styles: [`
-    .full {
-      width: 100%;
-      margin-bottom: 15px;
-    }
+
+  .content{
+    max-height:70vh;
+    overflow:auto;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-bottom:20px;
+  }
+
+  .description{
+    background:#f5f5f5;
+    padding:10px;
+    border-radius:6px;
+  }
+
+  .timeline-item{
+    padding-left:10px;
+    margin-bottom:15px;
+    border-left:4px solid #ccc;
+  }
+
+  .timeline-system{
+    border-left-color:#9e9e9e;
+  }
+
+  .timeline-comment{
+    border-left-color:#1976d2;
+  }
+
+  .timeline-status{
+    border-left-color:#2e7d32;
+  }
+
+  .timeline-header{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+  }
+
+  .message{
+    margin:5px 0;
+  }
+
+  .status-change{
+    font-size:13px;
+    color:#555;
+  }
+
+  .evidences{
+    margin-top:5px;
+  }
+
+  a{
+    text-decoration:none;
+  }
+
   `]
 })
 export class CaseDetailComponent {
 
-  form: any;
-  selectedFile!: File | null;
-
   constructor(
-    @Inject(MAT_DIALOG_DATA) public data: any,
-    private fb: FormBuilder,
-    private caseService: CaseService,
-    private notification: NotificationService,
-    private cd: ChangeDetectorRef
-  ) {
-    this.form = this.fb.group({
-      message: ['', Validators.required]
-    });
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {}
+
+  getTypeLabel(type: string){
+
+    const map: any = {
+      SYSTEM: 'Sistema',
+      COMMENT: 'Seguimiento',
+      STATUS_CHANGE: 'Cambio de Estado'
+    };
+
+    return map[type] || type;
   }
 
-  addComment() {
-    if (this.form.invalid) return;
+  getTimelineClass(type: string) {
 
-    this.caseService.addComment(this.data._id, this.form.value.message!, )
-      .subscribe(() => {
+    const map: any = {
+      SYSTEM: 'timeline-system',
+      COMMENT: 'timeline-comment',
+      STATUS_CHANGE: 'timeline-status'
+    };
 
-        this.caseService.getCaseById(this.data._id)
-          .subscribe(updatedCase => {
-            this.data.comments = updatedCase.comments;
-            this.notification.success('Comentario agregado correctamente');
-            this.form.reset();
-          });
+    return map[type] || 'timeline-default';
 
-      });
-
-      
-      
-  }
-
-  onFileSelected(event: any) {
-    const file: File = event.target.files[0];
-    if (!file) return;
-
-    this.selectedFile = file;
-  }
-
-  uploadSelectedFile() {
-
-    if (!this.selectedFile) return;
-
-    this.caseService.uploadEvidence(this.data._id, this.selectedFile)
-      .subscribe(() => {
-
-        this.notification.success('Evidencia subida correctamente');
-
-        this.caseService.getCaseById(this.data._id)
-          .subscribe(updatedCase => {
-
-            this.data = { ...updatedCase }; // 🔥 nueva referencia completa
-
-            this.selectedFile = null;
-
-            this.cd.detectChanges(); // 🔥 fuerza actualización inmediata
-          });
-
-      });
   }
 
 }

@@ -3,9 +3,8 @@ import { createCase } from '../controllers/case.controller';
 import { protect } from '../middlewares/authMiddleware';
 import { authorizeRoles } from '../middlewares/roleMiddleware';
 import { getCases } from '../controllers/case.controller';
-import { addSeguimiento, closeCase, changeStatus , advanceStatus} from '../controllers/case.controller';
+import { addSeguimiento,  advanceStatus} from '../controllers/case.controller';
 import { upload } from '../config/multer';
-import { uploadEvidence } from '../controllers/case.controller';
 import { getDashboardMetrics } from '../controllers/case.controller';
 import { exportCasesCSV } from '../controllers/case.controller';
 import { exportCasesPDF } from '../controllers/case.controller';
@@ -58,21 +57,6 @@ router.patch(
   protect,
   upload.array('file'), 
   advanceStatus
-);
-
-router.patch(
-  '/:id/close',
-  protect,
-  authorizeRoles('admin', 'usuario'),
-  closeCase
-);
-
-router.post(
-  '/:id/evidence',
-  protect,
-  authorizeRoles('admin', 'usuario'),
-  upload.single('file'),
-  uploadEvidence
 );
 
 router.get(
