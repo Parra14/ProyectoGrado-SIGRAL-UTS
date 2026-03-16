@@ -15,6 +15,10 @@ import { RouterModule, Router } from '@angular/router';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ActivatedRoute } from '@angular/router';
+import { MatSortModule, MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
+import { CaseFollowupComponent } from './case-followup/case-followup';
+
 
 @Component({
   selector: 'app-cases',
@@ -30,6 +34,7 @@ import { ActivatedRoute } from '@angular/router';
     MatIconModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatSortModule,
     FormsModule,
     RouterModule
   ],
@@ -127,35 +132,34 @@ import { ActivatedRoute } from '@angular/router';
 
   <!-- TABLA -->
 
-  <table mat-table [dataSource]="data" class="mat-elevation-z8">
+  <table mat-table [dataSource]="data" matSort class="mat-elevation-z8">
 
     <ng-container matColumnDef="code">
-      <th mat-header-cell *matHeaderCellDef>Código</th>
-      <td mat-cell *matCellDef="let element">{{ element.code }}</td>
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Código</th>      <td mat-cell *matCellDef="let element">{{ element.code }}</td>
     </ng-container>
 
     <ng-container matColumnDef="employeeName">
-      <th mat-header-cell *matHeaderCellDef>Trabajador</th>
-      <td mat-cell *matCellDef="let element">{{ element.employeeName }}</td>
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Trabajador</th>      
+    <td mat-cell *matCellDef="let element">{{ element.employeeName }}</td>
     </ng-container>
 
     <ng-container matColumnDef="tipoEventoPrincipal">
-      <th mat-header-cell *matHeaderCellDef>Tipo</th>
-      <td mat-cell *matCellDef="let element">{{ element.tipoEventoPrincipal }}</td>
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Tipo</th>      
+    <td mat-cell *matCellDef="let element">{{ element.tipoEventoPrincipal }}</td>
     </ng-container>
 
     <ng-container matColumnDef="gradoGravedad">
-      <th mat-header-cell *matHeaderCellDef>Gravedad</th>
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Gravedad</th>
       <td mat-cell *matCellDef="let element">{{ element.gradoGravedad }}</td>
     </ng-container>
 
     <ng-container matColumnDef="status">
-      <th mat-header-cell *matHeaderCellDef>Estado</th>
-      <td mat-cell *matCellDef="let element">{{ element.status }}</td>
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
+    <td mat-cell *matCellDef="let element">{{ element.status }}</td>
     </ng-container>
 
     <ng-container matColumnDef="lastUpdate">
-      <th mat-header-cell *matHeaderCellDef>Última Actualización</th>
+    <th mat-header-cell *matHeaderCellDef mat-sort-header>Última Actualización</th>
       <td mat-cell *matCellDef="let element">
         {{ getLastUpdate(element) | date:'short' }}
       </td>
@@ -243,7 +247,7 @@ export class CasesComponent implements OnInit {
     'actions'
   ];
 
-  data: any[] = [];
+  data = new MatTableDataSource<any>([]);
   total = 0;
   page = 1;
   limit = 10;
@@ -260,6 +264,7 @@ export class CasesComponent implements OnInit {
   };
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) sort!: MatSort;
 
   constructor(
     private caseService:CaseService,
@@ -297,21 +302,39 @@ export class CasesComponent implements OnInit {
     };
 
     Object.keys(this.filters).forEach(key=>{
-      if(this.filters[key]){
-        params[key]=this.filters[key];
+
+      let value = this.filters[key];
+
+      if(value instanceof Date){
+
+        const year = value.getFullYear();
+        const month = String(value.getMonth()+1).padStart(2,'0');
+        const day = String(value.getDate()).padStart(2,'0');
+
+        value = ` ${year}-${month}-${day}`;
+
       }
+
+      if(value){
+        params[key] = value;
+      }
+
     });
+    console.log(params);
+
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: this.filters,
       queryParamsHandling: 'merge'
     });
+
+
     this.caseService.getCases(params)
     .subscribe(res=>{
+      this.data.data = res.data;
+      this.total = res.total;
 
-      this.data=res.data;
-      this.total=res.total;
-
+      this.data.sort = this.sort;
       this.cd.detectChanges();
 
     });
@@ -354,11 +377,47 @@ export class CasesComponent implements OnInit {
   }
 
   openSeguimientoModal(element:any){
-    console.log("Seguimiento",element);
-  }
+
+    const dialogRef = this.dialog.open(
+      CaseFollowupComponent,
+      {
+        width: '600px',
+        data: {
+          caseId: element._id,
+          status: element.status,
+          mode: 'seguimiento'
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe(result=>{
+      if(result){
+        this.loadCases();
+      }
+    });
+
+  } 
 
   openStatusModal(element:any){
-    console.log("Cambio estado",element);
+
+  const dialogRef = this.dialog.open(
+      CaseFollowupComponent,
+      {
+        width: '600px',
+        data: {
+          caseId: element._id,
+          status: element.status,
+          mode: 'status'
+        }
+      }
+    );
+
+    dialogRef.afterClosed().subscribe(result=>{
+      if(result){
+        this.loadCases();
+      }
+    });
+
   }
 
   exportCSV(){
