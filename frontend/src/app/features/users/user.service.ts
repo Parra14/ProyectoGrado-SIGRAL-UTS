@@ -11,10 +11,17 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
-  getUsers() {
-    return this.http.get<any>(this.api);
-  }
+  getUsers(paramsObj: any = {}) {
+    let params: any = {};
 
+    Object.keys(paramsObj).forEach(key => {
+      if (paramsObj[key] !== null && paramsObj[key] !== '') {
+        params[key] = paramsObj[key];
+      }
+    });
+
+    return this.http.get<any>(this.api, { params });
+  }
   toggleStatus(id: string) {
     return this.http.patch(`${this.api}/${id}/status`, {});
   }

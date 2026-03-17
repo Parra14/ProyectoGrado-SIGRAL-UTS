@@ -8,18 +8,65 @@ import logAudit from '../utils/auditLogger';
 // 🔹 GET USERS (Paginado)
 export const getUsers = async (req: AuthRequest, res: Response) => {
   try {
+
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
-
     const skip = (page - 1) * limit;
 
-    const users = await User.find({ isDeleted: false })
+    const {
+      name,
+      email,
+      role,
+      isActive,
+      sortBy,
+      sortOrder
+    } = req.query;
+
+    const filter: any = { isDeleted: false };
+
+    /* ===============================
+       🔎 FILTROS
+    =============================== */
+
+    if (name) {
+      filter.name = { $regex: name, $options: 'i' };
+    }
+
+    if (email) {
+      filter.email = { $regex: email, $options: 'i' };
+    }
+
+    if (role) {
+      filter.role = role;
+    }
+
+    if (isActive !== undefined) {
+      filter.isActive = isActive === 'true';
+    }
+
+    /* ===============================
+       🔃 ORDENAMIENTO
+    =============================== */
+
+    let sort: any = { createdAt: -1 };
+
+    if (sortBy) {
+      sort = {
+        [sortBy as string]: sortOrder === 'asc' ? 1 : -1
+      };
+    }
+
+    /* ===============================
+       📊 QUERY
+    =============================== */
+
+    const users = await User.find(filter)
       .select('-password')
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort(sort);
 
-    const total = await User.countDocuments({ isDeleted: false });
+    const total = await User.countDocuments(filter);
 
     res.json({
       total,
@@ -27,6 +74,7 @@ export const getUsers = async (req: AuthRequest, res: Response) => {
       pages: Math.ceil(total / limit),
       users
     });
+
   } catch (error) {
     res.status(500).json({ message: 'Error obteniendo usuarios', error });
   }
