@@ -30,92 +30,113 @@ import { ChangeDetectorRef } from '@angular/core';
   template: `
     <h2>Auditoría del Sistema</h2>
 
-    <!-- FILTROS -->
-    <form [formGroup]="filterForm" class="filters">
+<!-- FILTROS -->
+<form [formGroup]="filterForm" class="filters">
 
-      <mat-form-field appearance="outline">
-        <mat-label>Usuario (nombre o email)</mat-label>
-        <input matInput formControlName="user">
-      </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>Usuario</mat-label>
+    <input matInput formControlName="user">
+  </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Acción</mat-label>
-        <input matInput formControlName="action">
-      </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>Acción</mat-label>
+    <input matInput formControlName="action">
+  </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Entidad</mat-label>
-        <input matInput formControlName="entity">
-      </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>Tipo Entidad</mat-label>
+    <input matInput formControlName="entity" placeholder="Case, User">
+  </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Desde</mat-label>
-        <input matInput [matDatepicker]="picker1" formControlName="from">
-        <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
-        <mat-datepicker #picker1></mat-datepicker>
-      </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>Registro (ID o Código)</mat-label>
+    <input matInput formControlName="registro" placeholder="SIG-2026-00018 o ID">
+  </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Hasta</mat-label>
-        <input matInput [matDatepicker]="picker2" formControlName="to">
-        <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
-        <mat-datepicker #picker2></mat-datepicker>
-      </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label>Desde</mat-label>
+    <input matInput [matDatepicker]="picker1" formControlName="from">
+    <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
+    <mat-datepicker #picker1></mat-datepicker>
+  </mat-form-field>
 
-      <button mat-raised-button color="primary" type="button" (click)="applyFilter()">
-        Filtrar
-      </button>
+  <mat-form-field appearance="outline">
+    <mat-label>Hasta</mat-label>
+    <input matInput [matDatepicker]="picker2" formControlName="to">
+    <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
+    <mat-datepicker #picker2></mat-datepicker>
+  </mat-form-field>
 
-      <button mat-button type="button" (click)="clearFilter()">
-        Limpiar
-      </button>
+  <button mat-raised-button color="primary" type="button" (click)="applyFilter()">
+    Filtrar
+  </button>
 
-      <button mat-raised-button color="accent" type="button" (click)="exportCSV()">
-        <mat-icon>download</mat-icon>
-        Exportar CSV
-      </button>
+  <button mat-button (click)="clearFilter()">
+    Limpiar
+  </button>
 
-    </form>
+  <button mat-raised-button color="accent" (click)="exportCSV()">
+    <mat-icon>download</mat-icon>
+    Exportar CSV
+  </button>
 
-    <!-- TABLA -->
-    <table mat-table [dataSource]="data" class="mat-elevation-z8">
+</form>
 
-      <ng-container matColumnDef="date">
-        <th mat-header-cell *matHeaderCellDef> Fecha </th>
-        <td mat-cell *matCellDef="let row">
-          {{ row.createdAt | date:'short' }}
-        </td>
-      </ng-container>
+<!-- TABLA -->
+<table mat-table [dataSource]="data" class="mat-elevation-z8">
 
-      <ng-container matColumnDef="userId">
-        <th mat-header-cell *matHeaderCellDef> Usuario </th>
-        <td mat-cell *matCellDef="let row"> {{ row.userId }} </td>
-      </ng-container>
+  <!-- Fecha -->
+  <ng-container matColumnDef="date">
+    <th mat-header-cell *matHeaderCellDef>Fecha</th>
+    <td mat-cell *matCellDef="let row">
+      {{ row.createdAt | date:'short' }}
+    </td>
+  </ng-container>
 
-      <ng-container matColumnDef="action">
-        <th mat-header-cell *matHeaderCellDef> Acción </th>
-        <td mat-cell *matCellDef="let row"> {{ row.action }} </td>
-      </ng-container>
+  <!-- Usuario -->
+  <ng-container matColumnDef="user">
+    <th mat-header-cell *matHeaderCellDef>Usuario</th>
+    <td mat-cell *matCellDef="let row">
+      {{ row.userName }}
+    </td>
+  </ng-container>
 
-      <ng-container matColumnDef="entity">
-        <th mat-header-cell *matHeaderCellDef> Entidad </th>
-        <td mat-cell *matCellDef="let row"> {{ row.entity }} </td>
-      </ng-container>
+  <!-- Acción -->
+  <ng-container matColumnDef="action">
+    <th mat-header-cell *matHeaderCellDef>Acción</th>
+    <td mat-cell *matCellDef="let row">
+      <span [ngClass]="getActionClass(row.action)">
+        {{ row.actionLabel }}
+      </span>
+    </td>
+  </ng-container>
 
-      <ng-container matColumnDef="entityId">
-        <th mat-header-cell *matHeaderCellDef> ID Entidad </th>
-        <td mat-cell *matCellDef="let row"> {{ row.entityId }} </td>
-      </ng-container>
+  <!-- Entidad -->
+  <ng-container matColumnDef="entity">
+    <th mat-header-cell *matHeaderCellDef>Entidad</th>
+    <td mat-cell *matCellDef="let row">
+      {{ row.entity }}
+    </td>
+  </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="columns"></tr>
-      <tr mat-row *matRowDef="let row; columns: columns;"></tr>
-    </table>
+  <!-- ID / Código -->
+  <ng-container matColumnDef="entityId">
+    <th mat-header-cell *matHeaderCellDef>Registro</th>
+    <td mat-cell *matCellDef="let row">
+      {{ row.entityName }}
+    </td>
+  </ng-container>
 
-    <mat-paginator
-      [length]="total"
-      [pageSize]="limit"
-      (page)="onPageChange($event)">
-    </mat-paginator>
+  <tr mat-header-row *matHeaderRowDef="columns"></tr>
+  <tr mat-row *matRowDef="let row; columns: columns;"></tr>
+
+</table>
+
+<mat-paginator
+  [length]="total"
+  [pageSize]="limit"
+  (page)="onPageChange($event)">
+</mat-paginator>
   `,
   styles: [`
     .filters {
@@ -130,11 +151,42 @@ import { ChangeDetectorRef } from '@angular/core';
       width: 100%;
       margin-bottom: 15px;
     }
+
+    .action-create {
+      color: green;
+      font-weight: 600;
+    }
+
+    .action-change-update {
+      color: orange;
+      font-weight: 600;
+    }
+
+    .action-delete {
+      color: red;
+      font-weight: 600;
+    }
+
+    .action-add-upload {
+      color: blue;
+      font-weight: 600;
+    }
+
+    .action-user {
+      color: Sienna;
+      font-weight: 600;
+    }
+
+    .action-close {
+      color: Purple;
+      font-weight: 600;
+    }
+    
   `]
 })
 export class AuditComponent implements OnInit {
 
-  columns = ['date', 'userId', 'action', 'entity', 'entityId'];
+  columns = ['date', 'user', 'action', 'entity', 'entityId'];
   data: any[] = [];
   total = 0;
   page = 1;
@@ -152,14 +204,29 @@ export class AuditComponent implements OnInit {
       this.filterForm = this.fb.group({
         user: [''],
         action: [''],
-        entity: [''],
+        entity: [''],      // tipo entidad
+        registro: [''],    // 🔥 NUEVO
         from: [''],
         to: ['']
       });
   }
 
+  
+
   ngOnInit(): void {
     this.loadAudit();
+  }
+
+  getActionClass(action: string) {
+
+    if (action.includes('CREATE')) return 'action-create';
+    if (action.includes('CHANGE') || action.includes('UPDATE')) return 'action-change-update';
+    if (action.includes('ADD') || action.includes('UPLOAD')) return 'action-add-upload'; 
+    if (action.includes('USER')) return 'action-user';
+    if (action.includes('CLOSE')) return 'action-close';    
+    if (action.includes('DELETE')) return 'action-delete';
+
+    return '';
   }
 
   loadAudit() {
@@ -171,10 +238,12 @@ export class AuditComponent implements OnInit {
 
     this.auditService.getAuditLogs(params)
       .subscribe(res => {
-        this.data = res.logs;
-        this.total = res.total;
 
-        this.cd.detectChanges(); // 🔥 esto arregla el NG0100
+        this.data = res.logs || [];
+        this.total = res.total || 0;
+
+        this.cd.detectChanges(); // 🔥 NECESARIO
+
       });
   }
 
