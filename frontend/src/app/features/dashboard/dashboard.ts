@@ -4,165 +4,33 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon'; // 👈 Agregado
+import { MatDividerModule } from '@angular/material/divider'; // 👈 Agregado
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { CaseService } from '../cases/case.service';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
+    CommonModule,
     MatCardModule,
     BaseChartDirective,
     MatDatepickerModule,
     MatNativeDateModule,
     MatFormFieldModule,
     MatButtonModule,
+    MatIconModule,        // 👈 Para los íconos
+    MatDividerModule,     // 👈 Para los divisores
     ReactiveFormsModule,
     MatInputModule
   ],
-  template: `
-    <h2>Dashboard</h2>
-
-    <!-- FILTROS -->
-    <form [formGroup]="filterForm" class="filters">
-
-      <mat-form-field appearance="outline">
-        <mat-label>Desde</mat-label>
-        <input matInput [matDatepicker]="picker1" formControlName="from">
-        <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
-        <mat-datepicker #picker1></mat-datepicker>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Hasta</mat-label>
-        <input matInput [matDatepicker]="picker2" formControlName="to">
-        <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
-        <mat-datepicker #picker2></mat-datepicker>
-      </mat-form-field>
-
-      <button mat-raised-button color="primary" type="button" (click)="applyFilter()">
-        Aplicar
-      </button>
-
-      <button mat-button color="warn" type="button" (click)="clearFilter()">
-        Limpiar
-      </button>
-
-    </form>
-
-    <!-- CARDS -->
-    <div class="cards">
-      <mat-card class="card">
-        <h3>Total Casos</h3>
-        <p>{{ metrics?.totalCases }}</p>
-      </mat-card>
-
-      <mat-card class="card">
-        <h3>Abiertos</h3>
-        <p>{{ metrics?.openCases }}</p>
-      </mat-card>
-
-      <mat-card class="card">
-        <h3>Cerrados</h3>
-        <p>{{ metrics?.closedCases }}</p>
-      </mat-card>
-    </div>
-
-    <!-- CHARTS -->
-    <div class="charts">
-
-      <mat-card class="chart">
-        <h3>Accidentes vs Incidentes</h3>
-        <div class="chart-container">
-        <canvas baseChart
-          [data]="lineChartData"
-          [options]="chartOptions"
-          [type]="'line'">
-        </canvas>
-        </div>
-      </mat-card>
-
-      <mat-card class="chart">
-        <h3>Casos por Gravedad</h3>
-        <div class="chart-container">
-          <canvas baseChart
-            [data]="barChartData"
-            [options]="chartOptions"
-            [type]="'bar'">
-          </canvas>
-        </div>
-      </mat-card>
-
-      <mat-card class="chart">
-        <h3>Distribución por Tipo</h3>
-        <div class="chart-container">
-          <canvas baseChart
-            [data]="doughnutChartData"
-            [options]="chartOptions"
-            [type]="'doughnut'">
-          </canvas>
-        </div>
-      </mat-card>
-
-    </div>
-  `,
-  styles: [`
-    .filters {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 30px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .cards {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 40px;
-    }
-
-    .card {
-      flex: 1;
-      text-align: center;
-    }
-
-    .charts {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 30px;
-    }
-      
-
-    .chart {
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .chart-container {
-      position: relative;
-      width: 100%;
-      height: 300px;
-    }
-
-    @media (max-width: 768px) {
-      .chart-container {
-        height: 250px;
-      }
-    }
-
-    .charts mat-card {
-      display: flex;
-      flex-direction: column;
-    }
-      
-    h3 {
-      margin-bottom: 15px;
-    }
-  `]
+  templateUrl: './dashboard.html',
+  styleUrls: ['./dashboard.scss']
 })
 export class DashboardComponent implements OnInit {
 
@@ -171,28 +39,81 @@ export class DashboardComponent implements OnInit {
 
   public chartOptions: any = {
     responsive: true,
-    maintainAspectRatio: false
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          color: '#424242',
+          font: {
+            size: 12
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(46, 125, 50, 0.1)'
+        }
+      },
+      x: {
+        grid: {
+          display: false
+        }
+      }
+    }
   };
 
   lineChartData: any = {
     labels: [],
     datasets: [
-      { data: [], label: 'Accidentes' },
-      { data: [], label: 'Incidentes' }
+      { 
+        data: [], 
+        label: 'Accidentes',
+        borderColor: '#f44336',
+        backgroundColor: 'rgba(244, 67, 54, 0.1)',
+        tension: 0.4,
+        fill: true
+      },
+      { 
+        data: [], 
+        label: 'Incidentes',
+        borderColor: '#ff9800',
+        backgroundColor: 'rgba(255, 152, 0, 0.1)',
+        tension: 0.4,
+        fill: true
+      }
     ]
   };
 
   barChartData: any = {
     labels: [],
     datasets: [
-      { data: [], label: 'Casos' }
+      { 
+        data: [], 
+        label: 'Casos',
+        backgroundColor: '#2e7d32',
+        borderRadius: 6
+      }
     ]
   };
 
   doughnutChartData: any = {
     labels: [],
     datasets: [
-      { data: [] }
+      { 
+        data: [],
+        backgroundColor: [
+          '#2e7d32',
+          '#4caf50',
+          '#81c784',
+          '#ff9800',
+          '#f44336'
+        ],
+        borderWidth: 0
+      }
     ]
   };
 
@@ -203,9 +124,7 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-
     const today = new Date();
-
     const last30Days = new Date();
     last30Days.setDate(today.getDate() - 30);
 
@@ -223,24 +142,36 @@ export class DashboardComponent implements OnInit {
   loadMetrics(params: any = {}) {
     this.caseService.getDashboardMetrics(params)
       .subscribe(res => {
-
         this.metrics = res;
 
         // DONUT
         this.doughnutChartData = {
           labels: res.byType.map((x: any) => x._id),
-          datasets: [{ data: res.byType.map((x: any) => x.count) }]
+          datasets: [{ 
+            data: res.byType.map((x: any) => x.count),
+            backgroundColor: [
+              '#2e7d32',
+              '#4caf50',
+              '#81c784',
+              '#ff9800',
+              '#f44336'
+            ],
+            borderWidth: 0
+          }]
         };
 
         // BARRAS
         this.barChartData = {
           labels: res.byGravedad.map((x: any) => x._id),
-          datasets: [{ data: res.byGravedad.map((x: any) => x.count), label: 'Casos' }]
+          datasets: [{ 
+            data: res.byGravedad.map((x: any) => x.count), 
+            label: 'Casos',
+            backgroundColor: '#2e7d32',
+            borderRadius: 6
+          }]
         };
 
-        // LINEA
-        // === GENERAR RANGO COMPLETO DE FECHAS ===
-
+        // LÍNEA
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -256,7 +187,6 @@ export class DashboardComponent implements OnInit {
 
         endDate.setHours(0, 0, 0, 0);
 
-        // Generar arreglo de fechas completas
         const dates: string[] = [];
         const current = new Date(startDate);
 
@@ -264,8 +194,6 @@ export class DashboardComponent implements OnInit {
           dates.push(current.toISOString().split('T')[0]);
           current.setDate(current.getDate() + 1);
         }
-
-        // === CONSTRUIR SERIES ===
 
         const accidentes: number[] = [];
         const incidentes: number[] = [];
@@ -281,18 +209,32 @@ export class DashboardComponent implements OnInit {
           incidentes.push(inc ? inc.count : 0);
         });
 
-        // === ASIGNAR AL CHART ===
-
         this.lineChartData = {
           labels: dates,
           datasets: [
-            { data: accidentes, label: 'Accidentes' },
-            { data: incidentes, label: 'Incidentes' }
+            { 
+              data: accidentes, 
+              label: 'Accidentes',
+              borderColor: '#f44336',
+              backgroundColor: 'rgba(244, 67, 54, 0.1)',
+              tension: 0.4,
+              fill: true
+            },
+            { 
+              data: incidentes, 
+              label: 'Incidentes',
+              borderColor: '#ff9800',
+              backgroundColor: 'rgba(255, 152, 0, 0.1)',
+              tension: 0.4,
+              fill: true
+            }
           ]
         };
 
         this.cd.detectChanges();
       });
+
+      this.cd.detectChanges();
   }
 
   applyFilter() {
@@ -308,7 +250,6 @@ export class DashboardComponent implements OnInit {
   }
 
   clearFilter() {
-
     const today = new Date();
     const last30Days = new Date();
     last30Days.setDate(today.getDate() - 30);

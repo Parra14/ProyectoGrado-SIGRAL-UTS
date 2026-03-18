@@ -1,1 +1,219 @@
-<p>users works!</p>
+<div class="users-container">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <mat-icon class="title-icon">people</mat-icon>
+        Gestión de Usuarios
+      </h1>
+      <p class="page-subtitle">Administra los usuarios del sistema y sus permisos</p>
+    </div>
+
+    <div class="header-actions">
+      <button mat-raised-button color="primary" (click)="createUser()" class="create-btn">
+        <mat-icon>person_add</mat-icon>
+        Nuevo Usuario
+      </button>
+    </div>
+  </div>
+
+  <!-- FILTROS AVANZADOS -->
+  <mat-card class="filters-card">
+    <div class="filters-header">
+      <div class="filters-title">
+        <mat-icon class="filters-icon">filter_alt</mat-icon>
+        <h3>Filtros de búsqueda</h3>
+      </div>
+      <button mat-button color="primary" (click)="clearFilter()" class="clear-filters-btn">
+        <mat-icon>refresh</mat-icon>
+        Limpiar filtros
+      </button>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <form [formGroup]="filterForm" class="filters-grid">
+      
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Nombre</mat-label>
+        <mat-icon matPrefix class="field-icon">person</mat-icon>
+        <input matInput formControlName="name" placeholder="Buscar por nombre">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Email</mat-label>
+        <mat-icon matPrefix class="field-icon">email</mat-icon>
+        <input matInput formControlName="email" placeholder="Buscar por email">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Rol</mat-label>
+        <mat-icon matPrefix class="field-icon">badge</mat-icon>
+        <mat-select formControlName="role">
+          <mat-option value="">Todos los roles</mat-option>
+          <mat-option value="admin">Administrador</mat-option>
+          <mat-option value="usuario">Usuario</mat-option>
+          <mat-option value="supervisor">Supervisor</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Estado</mat-label>
+        <mat-icon matPrefix class="field-icon">circle</mat-icon>
+        <mat-select formControlName="isActive">
+          <mat-option value="">Todos los estados</mat-option>
+          <mat-option value="true">Activo</mat-option>
+          <mat-option value="false">Inactivo</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <div class="filter-actions">
+        <button mat-raised-button color="primary" type="button" (click)="applyFilter()" class="search-btn">
+          <mat-icon>search</mat-icon>
+          Filtrar
+        </button>
+      </div>
+    </form>
+  </mat-card>
+
+  <!-- TABLA DE USUARIOS -->
+  <mat-card class="table-card">
+    <div class="table-header">
+      <div class="table-title">
+        <mat-icon>list_alt</mat-icon>
+        <span>Listado de Usuarios ({{ dataSource.data.length }} registros)</span>
+      </div>
+      <div class="table-actions">
+        <button mat-icon-button matTooltip="Refrescar" (click)="loadUsers()">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="table-responsive">
+      <table mat-table [dataSource]="dataSource" matSort class="users-table">
+
+        <!-- ID -->
+        <ng-container matColumnDef="_id">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            <div class="header-cell">
+              <mat-icon>fingerprint</mat-icon>
+              <span>ID</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let user">
+            <span class="cell-id">{{ user._id | slice:0:15 }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Nombre -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            <div class="header-cell">
+              <mat-icon>person</mat-icon>
+              <span>Nombre</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let user">
+            <div class="cell-name">
+              <span class="name">{{ user.name }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Email -->
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            <div class="header-cell">
+              <mat-icon>email</mat-icon>
+              <span>Email</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let user">
+            <span class="cell-email">{{ user.email }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Rol -->
+        <ng-container matColumnDef="role">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            <div class="header-cell">
+              <mat-icon>badge</mat-icon>
+              <span>Rol</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let user">
+            <span class="role-badge" [ngClass]="'role-' + user.role">
+              {{ getRoleName(user.role) }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Estado -->
+        <!-- Estado - CON ordenamiento por isActive (booleano) -->
+        <ng-container matColumnDef="isActive">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            <div class="header-cell">
+            <mat-icon>circle</mat-icon>
+            <span>Estado</span>
+            </div>
+        </th>
+        <td mat-cell *matCellDef="let user">
+            <span class="status-badge" [ngClass]="user.isActive ? 'status-active' : 'status-inactive'">
+            <mat-icon class="status-icon">
+                {{ user.isActive ? 'check_circle' : 'cancel' }}
+            </mat-icon>
+            {{ user.isActive ? 'Activo' : 'Inactivo' }}
+            </span>
+        </td>
+        </ng-container>
+
+        <!-- Acciones -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="header-cell">
+              <mat-icon>settings</mat-icon>
+              <span>Acciones</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let user">
+            <div class="action-buttons">
+              <button mat-icon-button color="primary" (click)="editUser(user)" matTooltip="Editar usuario">
+                <mat-icon>edit</mat-icon>
+              </button>
+
+              <button mat-icon-button color="accent" (click)="resetPassword(user)" matTooltip="Restablecer contraseña">
+                <mat-icon>lock_reset</mat-icon>
+              </button>
+
+              <button 
+                mat-icon-button 
+                [color]="user.isActive ? 'warn' : 'primary'" 
+                (click)="toggleStatus(user)"
+                [matTooltip]="user.isActive ? 'Desactivar usuario' : 'Activar usuario'">
+                <mat-icon>
+                  {{ user.isActive ? 'block' : 'check_circle' }}
+                </mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+      </table>
+    </div>
+
+    <mat-paginator 
+      [pageSize]="10" 
+      [pageSizeOptions]="[5, 10, 20, 50]"
+      showFirstLastButtons
+      class="custom-paginator">
+    </mat-paginator>
+  </mat-card>
+
+</div>

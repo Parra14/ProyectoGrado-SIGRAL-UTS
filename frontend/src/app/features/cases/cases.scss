@@ -1,0 +1,443 @@
+// Paleta UTS
+$uts-green-primary: #2e7d32;
+$uts-green-dark: #1b5e20;
+$uts-green-light: #4caf50;
+$uts-green-bg: #e8f5e9;
+$uts-orange: #ff9800;
+$uts-red: #f44336;
+$uts-blue: #2196f3;
+$uts-purple: #9c27b0;
+$uts-gray-light: #f5f5f5;
+$uts-gray: #757575;
+$uts-gray-dark: #424242;
+
+.cases-container {
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out;
+}
+
+// PAGE HEADER
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  .header-left {
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: $uts-green-dark;
+      font-size: 2rem;
+      font-weight: 500;
+      margin: 0 0 8px 0;
+
+      .title-icon {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+        color: $uts-green-primary;
+      }
+    }
+
+    .page-subtitle {
+      color: $uts-gray;
+      font-size: 1rem;
+      margin: 0;
+      padding-left: 48px;
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+
+    .create-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 20px;
+      border-radius: 25px;
+
+      &:hover {
+        background: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba($uts-green-primary, 0.3);
+      }
+    }
+
+    .export-buttons {
+      display: flex;
+      gap: 8px;
+
+      .export-btn {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        transition: all 0.2s ease;
+
+        mat-icon {
+          font-size: 18px;
+        }
+
+        &.pdf-btn {
+          color: $uts-red;
+          border-color: $uts-red;
+
+          &:hover {
+            background: rgba($uts-red, 0.05);
+          }
+        }
+
+        &.csv-btn {
+          color: $uts-green-primary;
+          border-color: $uts-green-primary;
+
+          &:hover {
+            background: rgba($uts-green-primary, 0.05);
+          }
+        }
+      }
+    }
+  }
+}
+
+// FILTERS CARD
+.filters-card {
+  margin-bottom: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba($uts-green-primary, 0.1);
+  overflow: hidden;
+
+  .filters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #ffffff 0%, $uts-green-bg 50%);
+
+    .filters-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .filters-icon {
+        color: $uts-green-primary;
+      }
+
+      h3 {
+        margin: 0;
+        color: $uts-green-dark;
+        font-weight: 500;
+      }
+    }
+
+    .clear-filters-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: $uts-gray;
+
+      mat-icon {
+        font-size: 18px;
+      }
+
+      &:hover {
+        color: $uts-red;
+      }
+    }
+  }
+
+  .filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 20px;
+
+    .filter-field {
+      width: 100%;
+
+      .field-icon {
+        color: $uts-green-primary;
+        margin-right: 8px;
+        font-size: 20px;
+      }
+
+      ::ng-deep .mat-form-field-outline {
+        color: $uts-green-primary;
+      }
+    }
+
+    .date-field {
+      min-width: 150px;
+    }
+
+    .filter-actions {
+      display: flex;
+      align-items: center;
+
+      .search-btn {
+        width: 100%;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 8px;
+
+        &:hover {
+          background: white;
+        }
+      }
+    }
+  }
+}
+
+// TABLE CARD
+.table-card {
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba($uts-green-primary, 0.1);
+  overflow: hidden;
+
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+
+    .table-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      mat-icon {
+        color: $uts-green-primary;
+      }
+
+      span {
+        color: $uts-gray-dark;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  .cases-table {
+    width: 100%;
+
+    .header-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: $uts-green-dark;
+      font-weight: 500;
+
+      mat-icon {
+        font-size: 18px;
+        color: $uts-green-primary;
+      }
+    }
+
+    .mat-mdc-header-row {
+      background: linear-gradient(135deg, #ffffff 0%, $uts-green-bg 50%);
+      height: 56px;
+    }
+
+    .mat-mdc-row {
+      height: 60px;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background: rgba($uts-green-primary, 0.05);
+      }
+    }
+
+    .cell-code {
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      color: $uts-green-dark;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-align: center;
+
+      &-accidente {
+        background: rgba($uts-red, 0.1);
+        color: $uts-red;
+        border: 1px solid rgba($uts-red, 0.2);
+      }
+
+      &-incidente {
+        background: rgba($uts-orange, 0.1);
+        color: $uts-orange;
+        border: 1px solid rgba($uts-orange, 0.2);
+      }
+
+      &-leve {
+        background: rgba($uts-green-light, 0.1);
+        color: $uts-green-dark;
+        border: 1px solid rgba($uts-green-light, 0.2);
+      }
+
+      &-moderado {
+        background: rgba($uts-orange, 0.1);
+        color: $uts-orange;
+        border: 1px solid rgba($uts-orange, 0.2);
+      }
+
+      &-grave {
+        background: rgba($uts-red, 0.1);
+        color: $uts-red;
+        border: 1px solid rgba($uts-red, 0.2);
+      }
+
+      &-arl {
+        background: rgba($uts-purple, 0.1);
+        color: $uts-purple;
+        border: 1px solid rgba($uts-purple, 0.2);
+      }
+
+      &-investigacion {
+        background: rgba($uts-blue, 0.1);
+        color: $uts-blue;
+        border: 1px solid rgba($uts-blue, 0.2);
+      }
+
+      &-plan {
+        background: rgba($uts-orange, 0.1);
+        color: $uts-orange;
+        border: 1px solid rgba($uts-orange, 0.2);
+      }
+
+      &-cerrado {
+        background: rgba($uts-green-primary, 0.1);
+        color: $uts-green-dark;
+        border: 1px solid rgba($uts-green-primary, 0.2);
+      }
+    }
+
+    .date-cell {
+      display: flex;
+      flex-direction: column;
+
+      .date {
+        font-weight: 500;
+        color: $uts-gray-dark;
+      }
+
+      .time {
+        font-size: 0.7rem;
+        color: $uts-gray;
+      }
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 4px;
+
+      button {
+        transition: all 0.2s ease;
+
+        &:hover {
+          transform: scale(1.1);
+        }
+
+        &[disabled] {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+// PAGINATOR
+.custom-paginator {
+  border-top: 1px solid rgba($uts-green-primary, 0.1);
+  padding: 8px 0;
+}
+
+// ANIMATIONS
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// RESPONSIVE
+@media (max-width: 768px) {
+  .cases-container {
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+
+    .header-left {
+      .page-title {
+        font-size: 1.6rem;
+
+        .title-icon {
+          font-size: 28px;
+        }
+      }
+
+      .page-subtitle {
+        padding-left: 0;
+      }
+    }
+
+    .header-actions {
+      width: 100%;
+      flex-direction: column;
+
+      .create-btn {
+        width: 100%;
+      }
+
+      .export-buttons {
+        width: 100%;
+        justify-content: stretch;
+
+        button {
+          flex: 1;
+        }
+      }
+    }
+  }
+
+  .filters-card {
+    .filters-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .cases-table {
+    .action-buttons {
+      flex-wrap: wrap;
+    }
+  }
+}

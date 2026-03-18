@@ -1,1 +1,262 @@
-<p>audit works!</p>
+<div class="audit-container">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <mat-icon class="title-icon">security</mat-icon>
+        Auditoría del Sistema
+      </h1>
+      <p class="page-subtitle">Registro detallado de todas las acciones realizadas en el sistema</p>
+    </div>
+
+    <div class="header-stats">
+      <div class="stat-item">
+        <span class="stat-label">Total registros</span>
+        <span class="stat-value">{{ total | number }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Período</span>
+        <span class="stat-value">{{ getPeriodText() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS AVANZADOS -->
+  <mat-card class="filters-card">
+    <div class="filters-header">
+      <div class="filters-title">
+        <mat-icon class="filters-icon">filter_alt</mat-icon>
+        <h3>Filtros de búsqueda</h3>
+      </div>
+      <div class="filters-actions">
+        <button mat-button (click)="clearFilter()" class="clear-filters-btn">
+          <mat-icon>refresh</mat-icon>
+          Limpiar
+        </button>
+        <button mat-raised-button color="accent" (click)="exportCSV()" class="export-btn">
+          <mat-icon>download</mat-icon>
+          Exportar CSV
+        </button>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <form [formGroup]="filterForm" class="filters-grid">
+      
+      <!-- Fila 1: Búsqueda principal -->
+      <div class="search-row">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Buscar por usuario, acción o entidad</mat-label>
+          <mat-icon matPrefix class="field-icon">search</mat-icon>
+          <input matInput formControlName="globalSearch" placeholder="Ej: admin, CREATE, Case...">
+          <button mat-icon-button matSuffix type="button" *ngIf="filterForm.get('globalSearch')?.value" (click)="filterForm.get('globalSearch')?.setValue('')">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+
+      <!-- Fila 2: Filtros específicos -->
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Usuario</mat-label>
+          <mat-icon matPrefix class="field-icon">person</mat-icon>
+          <input matInput formControlName="user" placeholder="Nombre de usuario">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Acción</mat-label>
+          <mat-icon matPrefix class="field-icon">bolt</mat-icon>
+          <input matInput formControlName="action" placeholder="CREATE, UPDATE, DELETE...">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Tipo Entidad</mat-label>
+          <mat-icon matPrefix class="field-icon">category</mat-icon>
+          <input matInput formControlName="entity" placeholder="Case, User, Report...">
+        </mat-form-field>
+      </div>
+
+      <!-- Fila 3: ID/Registro y fechas -->
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Registro (ID o Código)</mat-label>
+          <mat-icon matPrefix class="field-icon">fingerprint</mat-icon>
+          <input matInput formControlName="registro" placeholder="SIG-2026-00018 o ID">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field date-field">
+          <mat-label>Desde</mat-label>
+          <mat-icon matPrefix class="field-icon">calendar_today</mat-icon>
+          <input matInput [matDatepicker]="picker1" formControlName="from">
+          <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
+          <mat-datepicker #picker1></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field date-field">
+          <mat-label>Hasta</mat-label>
+          <mat-icon matPrefix class="field-icon">calendar_today</mat-icon>
+          <input matInput [matDatepicker]="picker2" formControlName="to">
+          <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
+          <mat-datepicker #picker2></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <!-- Fila 4: Acciones -->
+      <div class="filters-actions-row">
+        <button mat-raised-button color="primary" (click)="applyFilter()" class="apply-btn">
+          <mat-icon>search</mat-icon>
+          Aplicar filtros
+        </button>
+        
+        <div class="active-filters" *ngIf="hasActiveFilters()">
+          <mat-icon class="info-icon">info</mat-icon>
+          <span>{{ getActiveFiltersCount() }} filtro(s) activo(s)</span>
+        </div>
+      </div>
+
+    </form>
+  </mat-card>
+
+  <!-- TABLA DE AUDITORÍA -->
+  <mat-card class="table-card">
+    <div class="table-header">
+      <div class="table-title">
+        <mat-icon>list_alt</mat-icon>
+        <span>Registro de eventos ({{ total }} resultados)</span>
+      </div>
+      <div class="table-actions">
+        <button mat-icon-button matTooltip="Refrescar" (click)="loadAudit()">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="table-responsive">
+      <table mat-table [dataSource]="data" class="audit-table">
+
+        <!-- Fecha -->
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="header-cell">
+              <mat-icon>schedule</mat-icon>
+              <span>Fecha</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <div class="date-cell">
+              <span class="date">{{ row.createdAt | date:'dd/MM/yyyy' }}</span>
+              <span class="time">{{ row.createdAt | date:'HH:mm:ss' }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Usuario -->
+        <ng-container matColumnDef="user">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="header-cell">
+              <mat-icon>person</mat-icon>
+              <span>Usuario</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <div class="user-cell">
+              <span class="user-name">{{ row.userName }}</span>
+              <span class="user-email">{{ row.userEmail }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Acción -->
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="header-cell">
+              <mat-icon>bolt</mat-icon>
+              <span>Acción</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <span class="action-badge" [ngClass]="getActionClass(row.action)">
+              <mat-icon class="action-icon">{{ getActionIcon(row.action) }}</mat-icon>
+              {{ row.actionLabel }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- Entidad -->
+        <ng-container matColumnDef="entity">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="header-cell">
+              <mat-icon>category</mat-icon>
+              <span>Entidad</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <span class="entity-badge" [ngClass]="'entity-' + row.entity.toLowerCase()">
+              {{ row.entity }}
+            </span>
+          </td>
+        </ng-container>
+
+        <!-- ID / Código -->
+        <ng-container matColumnDef="entityId">
+          <th mat-header-cell *matHeaderCellDef>
+            <div class="header-cell">
+              <mat-icon>fingerprint</mat-icon>
+              <span>Registro</span>
+            </div>
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <div class="entity-cell">
+              <span class="entity-code">{{ row.entityName }}</span>
+              <span class="entity-id">{{ row.entityId }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="columns"></tr>
+        <tr mat-row *matRowDef="let row; columns: columns;" class="audit-row"></tr>
+
+        <!-- Fila vacía -->
+        <tr class="mat-row no-data-row" *ngIf="data.length === 0">
+          <td class="mat-cell" [attr.colspan]="columns.length">
+            <div class="empty-state">
+              <mat-icon class="empty-icon">search_off</mat-icon>
+              <h3>No se encontraron registros</h3>
+              <p>Prueba ajustando los filtros de búsqueda</p>
+            </div>
+          </td>
+        </tr>
+
+      </table>
+    </div>
+
+    <mat-paginator
+      [length]="total"
+      [pageSize]="limit"
+      [pageSizeOptions]="[5, 10, 20, 50, 100]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+      class="custom-paginator">
+    </mat-paginator>
+  </mat-card>
+
+  <!-- RESUMEN DE ACTIVIDAD (opcional) -->
+  <mat-card class="summary-card" *ngIf="data.length > 0">
+    <div class="summary-header">
+      <mat-icon>insights</mat-icon>
+      <h3>Resumen de actividad</h3>
+    </div>
+    <div class="summary-stats">
+      <div class="summary-stat" *ngFor="let stat of getActionSummary()">
+        <span class="stat-dot" [style.background-color]="stat.color"></span>
+        <span class="stat-label">{{ stat.label }}</span>
+        <span class="stat-count">{{ stat.count }}</span>
+      </div>
+    </div>
+  </mat-card>
+
+</div>

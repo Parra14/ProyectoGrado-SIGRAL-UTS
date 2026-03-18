@@ -1,0 +1,404 @@
+// Paleta UTS
+$uts-green-primary: #2e7d32;
+$uts-green-dark: #1b5e20;
+$uts-green-light: #4caf50;
+$uts-green-bg: #e8f5e9;
+$uts-orange: #ff9800;
+$uts-red: #f44336;
+$uts-blue: #2196f3;
+$uts-gray-light: #f5f5f5;
+$uts-gray: #757575;
+$uts-gray-dark: #424242;
+
+.form-container {
+  padding: 24px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, $uts-green-bg 0%, #ffffff 100%);
+  animation: fadeIn 0.4s ease-out;
+
+  .form-card {
+    max-width: 1000px;
+    margin: 0 auto;
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid rgba($uts-green-primary, 0.1);
+
+    .form-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 32px 32px 24px;
+
+      .header-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, $uts-green-primary, $uts-green-dark);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        mat-icon {
+          font-size: 32px;
+          width: 32px;
+          height: 32px;
+          color: white;
+        }
+      }
+
+      .header-title {
+        flex: 1;
+
+        h1 {
+          margin: 0 0 4px;
+          color: $uts-green-dark;
+          font-size: 2rem;
+          font-weight: 500;
+        }
+
+        .subtitle {
+          margin: 0;
+          color: $uts-gray;
+          font-size: 1rem;
+        }
+      }
+
+      .edit-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: rgba($uts-orange, 0.1);
+        border-radius: 30px;
+        color: $uts-orange;
+        font-weight: 500;
+
+        mat-icon {
+          font-size: 20px;
+        }
+      }
+    }
+
+    .header-divider {
+      margin: 0 32px;
+      border-top-color: rgba($uts-green-primary, 0.2);
+    }
+
+    // Barra de progreso
+    .form-progress {
+      padding: 32px 32px 16px;
+
+      .progress-steps {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+
+        .step {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          position: relative;
+
+          .step-indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid $uts-gray-light;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: $uts-gray;
+            transition: all 0.3s ease;
+
+            mat-icon {
+              font-size: 20px;
+              width: 20px;
+              height: 20px;
+              color: white;
+            }
+          }
+
+          .step-label {
+            font-size: 0.85rem;
+            color: $uts-gray;
+            font-weight: 500;
+          }
+
+          &.active {
+            .step-indicator {
+              border-color: $uts-green-primary;
+              color: $uts-green-primary;
+              background: rgba($uts-green-primary, 0.05);
+            }
+
+            .step-label {
+              color: $uts-green-dark;
+            }
+          }
+
+          &.completed {
+            .step-indicator {
+              background: $uts-green-primary;
+              border-color: $uts-green-primary;
+              color: white;
+            }
+          }
+        }
+
+        .step-connector {
+          width: 60px;
+          height: 2px;
+          background: $uts-gray-light;
+          transition: background 0.3s ease;
+
+          &.active {
+            background: $uts-green-primary;
+          }
+        }
+      }
+    }
+
+    // Secciones del formulario
+    .form-section {
+      padding: 0 32px 32px;
+      animation: slideIn 0.3s ease-out;
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+
+        .section-icon {
+          width: 40px;
+          height: 40px;
+          background: rgba($uts-green-primary, 0.1);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+
+          mat-icon {
+            color: $uts-green-primary;
+          }
+        }
+
+        h2 {
+          margin: 0;
+          color: $uts-green-dark;
+          font-size: 1.3rem;
+          font-weight: 500;
+        }
+
+        .section-badge {
+          margin-left: auto;
+          padding: 4px 12px;
+          background: $uts-green-bg;
+          border-radius: 20px;
+          color: $uts-green-dark;
+          font-size: 0.85rem;
+          font-weight: 500;
+        }
+      }
+
+      .section-content {
+        background: $uts-gray-light;
+        border-radius: 16px;
+        padding: 24px;
+
+        .form-row {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 20px;
+          margin-bottom: 20px;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+        }
+
+        .form-field {
+          width: 100%;
+
+          &.full-width {
+            grid-column: 1 / -1;
+          }
+
+          .field-icon {
+            color: $uts-green-primary;
+            margin-right: 8px;
+            font-size: 20px;
+          }
+
+          ::ng-deep .mat-form-field-outline {
+            color: $uts-green-primary;
+          }
+
+          mat-error {
+            font-size: 0.8rem;
+          }
+        }
+      }
+    }
+
+    // Acciones del formulario
+    .form-actions {
+      padding: 24px 32px 32px;
+      border-top: 1px solid rgba($uts-green-primary, 0.1);
+      background: $uts-gray-light;
+
+      .navigation-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+
+        .nav-btn {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 24px;
+          border-radius: 30px;
+
+          &.prev {
+            color: $uts-gray;
+            border-color: $uts-gray;
+
+            &:hover {
+              background: rgba($uts-gray, 0.05);
+            }
+          }
+
+          &.next, &.submit-btn {
+            margin-left: auto;
+
+            &:hover:not([disabled]) {
+              background: white;
+              transform: translateY(-2px);
+              box-shadow: 0 4px 12px rgba($uts-green-primary, 0.3);
+            }
+          }
+
+          mat-icon {
+            font-size: 18px;
+          }
+        }
+
+        .submit-btn {
+          margin-left: auto;
+        }
+      }
+
+      .form-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 16px;
+        padding: 12px;
+        background: rgba($uts-red, 0.1);
+        border-radius: 8px;
+        color: $uts-red;
+
+        .warning-icon {
+          font-size: 20px;
+        }
+      }
+    }
+  }
+}
+
+// Animaciones
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .form-container {
+    padding: 16px;
+
+    .form-card {
+      .form-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 24px;
+
+        .edit-badge {
+          align-self: flex-start;
+        }
+      }
+
+      .form-progress {
+        .progress-steps {
+          .step-connector {
+            width: 30px;
+          }
+        }
+      }
+
+      .form-section {
+        padding: 0 24px 24px;
+
+        .section-content {
+          padding: 16px;
+
+          .form-row {
+            grid-template-columns: 1fr;
+          }
+        }
+      }
+
+      .form-actions {
+        padding: 24px;
+
+        .navigation-buttons {
+          flex-direction: column;
+
+          .nav-btn {
+            width: 100%;
+
+            &.next, &.submit-btn {
+              margin-left: 0;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Estados de validación
+.ng-valid.ng-touched:not(form) {
+  .mat-form-field-outline {
+    color: $uts-green-primary !important;
+  }
+}
+
+.ng-invalid.ng-touched:not(form) {
+  .mat-form-field-outline {
+    color: $uts-red !important;
+  }
+}

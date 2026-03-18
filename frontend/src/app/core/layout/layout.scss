@@ -1,0 +1,184 @@
+// Paleta de colores UTS
+$uts-green-primary: #2e7d32;
+$uts-green-dark: #1b5e20;
+$uts-green-light: #4caf50;
+$uts-green-bg: #e8f5e9;
+$uts-gray-light: #f5f5f5;
+$uts-gray: #757575;
+
+.layout-container {
+  height: 100vh;
+}
+
+// SIDENAV
+.sidenav {
+  width: 250px;
+  background: white;
+  border-right: 1px solid rgba($uts-green-primary, 0.1);
+
+  .sidenav-header {
+    padding: 24px 16px;
+    text-align: center;
+    background: linear-gradient(135deg, $uts-green-primary, $uts-green-dark);
+    color: white;
+    margin-bottom: 8px;
+
+    .sidenav-logo {
+      width: 60px;
+      height: auto;
+      margin-bottom: 8px;
+      filter: brightness(0) invert(1);
+    }
+
+    .sidenav-title {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+  }
+
+  .nav-menu {
+    padding: 8px;
+
+    .mdc-list-item {
+      border-radius: 6px;
+      margin-bottom: 4px;
+      height: 48px;
+      cursor: pointer;
+
+      &:hover {
+        background: rgba($uts-green-primary, 0.1);
+      }
+
+      &.active-link {
+        background: $uts-green-primary;
+        
+        .mdc-list-item__primary-text,
+        mat-icon {
+          color: white !important;
+        }
+      }
+
+      mat-icon {
+        color: $uts-green-primary;
+      }
+
+      .mdc-list-item__primary-text {
+        color: #333;
+        font-size: 0.95rem;
+        font-weight: 500;
+      }
+    }
+
+    .logout-item {
+      mat-icon,
+      .mdc-list-item__primary-text {
+        color: #f44336 !important;
+      }
+
+      &:hover {
+        background: rgba(244, 67, 54, 0.1);
+      }
+    }
+  }
+}
+
+// TOOLBAR
+.main-toolbar {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  &.mat-primary {
+    background: $uts-green-primary !important;
+  }
+
+  .toolbar-title {
+    margin-left: 16px;
+    font-size: 1.1rem;
+    font-weight: 400;
+    
+    @media (max-width: 768px) {
+      font-size: 0.9rem;
+      margin-left: 8px;
+    }
+  }
+
+  .toolbar-spacer {
+    flex: 1 1 auto;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-left: 16px;
+
+    .user-icon {
+      margin-right: 6px;
+      font-size: 20px;
+    }
+
+    .user-role {
+      font-size: 0.9rem;
+      text-transform: capitalize;
+      
+      @media (max-width: 768px) {
+        display: none;
+      }
+    }
+  }
+}
+
+// CONTENIDO PRINCIPAL
+.content-wrapper {
+  background: linear-gradient(135deg, $uts-gray-light 0%, #ffffff 100%);
+  min-height: calc(100vh - 64px);
+  padding: 24px;
+
+  .content-container {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    min-height: calc(100vh - 112px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    animation: fadeIn 0.3s ease-out;
+  }
+}
+
+// ANIMACIONES
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// RESPONSIVE
+@media (max-width: 768px) {
+  .sidenav {
+    width: 85%;
+    max-width: 280px;
+  }
+
+  .content-wrapper {
+    padding: 16px;
+
+    .content-container {
+      padding: 16px;
+    }
+  }
+}
+
+// Separador del menú
+mat-divider {
+  margin: 12px 0;
+  border-top-color: rgba($uts-green-primary, 0.2);
+}

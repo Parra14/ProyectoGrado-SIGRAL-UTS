@@ -1,0 +1,166 @@
+<h2 mat-dialog-title class="dialog-title">
+  <div class="title-content">
+    <span class="title-icon">{{ isStatusMode() ? '🔄' : '💬' }}</span>
+    <span>{{ isStatusMode() ? 'Avanzar Estado del Caso' : 'Agregar Seguimiento' }}</span>
+  </div>
+</h2>
+
+<mat-dialog-content class="dialog-content">
+
+  <!-- ESTADO ACTUAL Y SIGUIENTE (solo modo status) -->
+  <div *ngIf="isStatusMode()" class="status-flow-card">
+    <div class="status-flow">
+      <div class="status-item current">
+        <span class="status-label">Estado Actual</span>
+        <span class="status-badge" [ngClass]="getStatusClass(data.status)">
+          {{ data.status.replace('_', ' ') }}
+        </span>
+      </div>
+      
+      <div class="status-arrow">→</div>
+      
+      <div class="status-item next">
+        <span class="status-label">Siguiente Estado</span>
+        <span class="status-badge" [ngClass]="getStatusClass(getNextStatus(data.status))">
+          {{ getNextStatus(data.status).replace('_', ' ') }}
+        </span>
+      </div>
+    </div>
+    
+    <div class="status-info" *ngIf="getNextStatus(data.status) === 'CERRADO'">
+      <mat-icon class="info-icon">info</mat-icon>
+      <span>Al cerrar el caso no podrás realizar más cambios</span>
+    </div>
+  </div>
+
+  <!-- FORMULARIO DE COMENTARIO -->
+  <form [formGroup]="form" class="form-container">
+    <div class="form-field-wrapper">
+      <label class="field-label">
+        <mat-icon class="label-icon">chat</mat-icon>
+        Comentario
+      </label>
+      <mat-form-field appearance="outline" class="full-width">
+        <textarea 
+          matInput 
+          rows="4" 
+          formControlName="message"
+          placeholder="Escribe tu comentario o seguimiento aquí..."></textarea>
+        <mat-hint align="end">{{ form.get('message')?.value?.length || 0 }}/500</mat-hint>
+      </mat-form-field>
+    </div>
+  </form>
+
+  <!-- SECCIÓN DE ARCHIVOS CON DRAG & DROP -->
+  <div class="files-section">
+    <div class="files-header">
+      <div class="files-title">
+        <mat-icon class="files-icon">attach_file</mat-icon>
+        <span>Archivos adjuntos</span>
+      </div>
+      <button 
+        mat-stroked-button 
+        color="primary" 
+        (click)="fileInput.click()" 
+        class="upload-btn"
+        type="button">
+        <mat-icon>cloud_upload</mat-icon>
+        Seleccionar archivos
+      </button>
+    </div>
+
+    <input
+      #fileInput
+      type="file"
+      multiple
+      hidden
+      (change)="onFilesSelected($event)"
+      accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt"
+    />
+
+    <!-- DROP ZONE -->
+    <div 
+      class="drop-zone"
+      [class.drag-over]="isDragOver"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      (click)="fileInput.click()">
+      
+      <div class="drop-zone-content">
+        <mat-icon class="drop-zone-icon">cloud_upload</mat-icon>
+        <div class="drop-zone-text">
+          <span class="primary-text">Arrastra y suelta archivos aquí</span>
+          <span class="secondary-text">o haz clic para seleccionar</span>
+        </div>
+        <div class="drop-zone-hint">
+          Formatos permitidos: PDF, DOC, XLS, Imágenes (máx 10MB por archivo)
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de archivos seleccionados -->
+    <div *ngIf="selectedFiles.length > 0" class="files-list">
+      <div class="files-list-header">
+        <mat-icon>description</mat-icon>
+        <span>Archivos seleccionados ({{ selectedFiles.length }})</span>
+        <button 
+          *ngIf="selectedFiles.length > 0"
+          mat-button 
+          color="warn" 
+          (click)="clearAllFiles()"
+          class="clear-all-btn">
+          <mat-icon>delete_sweep</mat-icon>
+          Limpiar todos
+        </button>
+      </div>
+      
+      <div class="files-grid">
+        <div *ngFor="let f of selectedFiles; let i = index" class="file-chip">
+          <div class="file-info">
+            <mat-icon class="file-icon" [ngClass]="getFileIconClass(f.name)">
+              {{ getFileIcon(f.name) }}
+            </mat-icon>
+            <div class="file-details">
+              <span class="file-name">{{ f.name }}</span>
+              <span class="file-size">{{ formatFileSize(f.size) }}</span>
+            </div>
+          </div>
+          <button 
+            mat-icon-button 
+            color="warn" 
+            (click)="removeFile($event, i)"
+            matTooltip="Eliminar archivo"
+            class="remove-file-btn">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensaje cuando no hay archivos -->
+    <div *ngIf="selectedFiles.length === 0" class="no-files">
+      <mat-icon class="no-files-icon">attach_file</mat-icon>
+      <p>No hay archivos seleccionados</p>
+      <span class="no-files-hint">Arrastra archivos o haz clic en el área superior</span>
+    </div>
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-button (click)="dialogRef.close()" class="cancel-btn">
+    <mat-icon>close</mat-icon>
+    Cancelar
+  </button>
+  
+  <button 
+    mat-raised-button 
+    color="primary" 
+    (click)="submit()" 
+    class="submit-btn"
+    [disabled]="!form.get('message')?.value && selectedFiles.length === 0">
+    <mat-icon>{{ isStatusMode() ? 'sync' : 'save' }}</mat-icon>
+    {{ isStatusMode() ? 'Cambiar Estado' : 'Guardar Seguimiento' }}
+  </button>
+</mat-dialog-actions>

@@ -1,1 +1,366 @@
-<p>case-form works!</p>
+<div class="form-container">
+  <mat-card class="form-card">
+    
+    <!-- HEADER DEL FORMULARIO -->
+    <div class="form-header">
+      <div class="header-icon">
+        <mat-icon>assignment</mat-icon>
+      </div>
+      <div class="header-title">
+        <h1>{{ isEditMode ? 'Editar Caso' : 'Registro de Caso' }}</h1>
+        <p class="subtitle">{{ isEditMode ? 'Modifica la información del caso' : 'Ingresa los detalles del nuevo caso' }}</p>
+      </div>
+      <div *ngIf="isEditMode" class="edit-badge">
+        <mat-icon>edit</mat-icon>
+        <span>Modo Edición</span>
+      </div>
+    </div>
+
+    <mat-divider class="header-divider"></mat-divider>
+
+    <!-- BARRA DE PROGRESO DEL FORMULARIO -->
+    <div class="form-progress">
+      <div class="progress-steps">
+        <div class="step" [class.active]="currentStep >= 1" [class.completed]="currentStep > 1">
+          <div class="step-indicator">
+            <mat-icon *ngIf="currentStep > 1">check</mat-icon>
+            <span *ngIf="currentStep === 1">1</span>
+          </div>
+          <span class="step-label">Evento</span>
+        </div>
+        <div class="step-connector" [class.active]="currentStep > 1"></div>
+        
+        <div class="step" [class.active]="currentStep >= 2" [class.completed]="currentStep > 2">
+          <div class="step-indicator">
+            <mat-icon *ngIf="currentStep > 2">check</mat-icon>
+            <span *ngIf="currentStep === 2">2</span>
+          </div>
+          <span class="step-label">Trabajador</span>
+        </div>
+        <div class="step-connector" [class.active]="currentStep > 2"></div>
+        
+        <div class="step" [class.active]="currentStep >= 3">
+          <div class="step-indicator">
+            <span>3</span>
+          </div>
+          <span class="step-label">Clasificación</span>
+        </div>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      
+      <!-- ========================= -->
+      <!-- SECCIÓN 1: DATOS DEL EVENTO -->
+      <!-- ========================= -->
+      <div class="form-section" *ngIf="currentStep === 1">
+        <div class="section-header">
+          <div class="section-icon">
+            <mat-icon>event</mat-icon>
+          </div>
+          <h2>Datos del Evento</h2>
+          <span class="section-badge">Paso 1 de 3</span>
+        </div>
+
+        <div class="section-content">
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Fecha del Evento</mat-label>
+              <mat-icon matPrefix class="field-icon">calendar_today</mat-icon>
+              <input matInput [matDatepicker]="picker" formControlName="eventDate">
+              <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+              <mat-error *ngIf="form.get('eventDate')?.hasError('required')">
+                La fecha es requerida
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Jornada</mat-label>
+              <mat-icon matPrefix class="field-icon">schedule</mat-icon>
+              <mat-select formControlName="jornada">
+                <mat-option value="DIURNA">Diurna</mat-option>
+                <mat-option value="NOCTURNA">Nocturna</mat-option>
+              </mat-select>
+              <mat-error *ngIf="form.get('jornada')?.hasError('required')">
+                La jornada es requerida
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Tipo Evento</mat-label>
+              <mat-icon matPrefix class="field-icon">category</mat-icon>
+              <mat-select formControlName="tipoEventoPrincipal">
+                <mat-option value="ACCIDENTE">Accidente</mat-option>
+                <mat-option value="INCIDENTE">Incidente</mat-option>
+              </mat-select>
+              <mat-error *ngIf="form.get('tipoEventoPrincipal')?.hasError('required')">
+                El tipo es requerido
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Grado Gravedad</mat-label>
+              <mat-icon matPrefix class="field-icon">warning</mat-icon>
+              <mat-select formControlName="gradoGravedad">
+                <mat-option value="LEVE">Leve</mat-option>
+                <mat-option value="MODERADO">Moderado</mat-option>
+                <mat-option value="GRAVE">Grave</mat-option>
+                <mat-option value="MORTAL">Mortal</mat-option>
+              </mat-select>
+              <mat-error *ngIf="form.get('gradoGravedad')?.hasError('required')">
+                La gravedad es requerida
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Categoría del Evento</mat-label>
+              <mat-icon matPrefix class="field-icon">label</mat-icon>
+              <mat-select formControlName="categoriaEvento">
+                <mat-option *ngFor="let cat of categoriasEvento" [value]="cat">
+                  {{ cat }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="form.get('categoriaEvento')?.hasError('required')">
+                La categoría es requerida
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Lugar Exacto</mat-label>
+              <mat-icon matPrefix class="field-icon">location_on</mat-icon>
+              <input matInput formControlName="lugarExacto" placeholder="Ej: Planta de producción, oficina 203...">
+              <mat-error *ngIf="form.get('lugarExacto')?.hasError('required')">
+                El lugar es requerido
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Descripción del Evento</mat-label>
+              <mat-icon matPrefix class="field-icon">description</mat-icon>
+              <textarea matInput rows="4" formControlName="descripcionEvento" 
+                placeholder="Describe detalladamente lo ocurrido..."></textarea>
+              <mat-hint align="end">{{ form.get('descripcionEvento')?.value?.length || 0 }}/500</mat-hint>
+              <mat-error *ngIf="form.get('descripcionEvento')?.hasError('required')">
+                La descripción es requerida
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================= -->
+      <!-- SECCIÓN 2: DATOS DEL TRABAJADOR -->
+      <!-- ========================= -->
+      <div class="form-section" *ngIf="currentStep === 2">
+        <div class="section-header">
+          <div class="section-icon">
+            <mat-icon>person</mat-icon>
+          </div>
+          <h2>Datos del Trabajador</h2>
+          <span class="section-badge">Paso 2 de 3</span>
+        </div>
+
+        <div class="section-content">
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Nombre Completo</mat-label>
+              <mat-icon matPrefix class="field-icon">badge</mat-icon>
+              <input matInput formControlName="employeeName" placeholder="Nombre completo del trabajador">
+              <mat-error *ngIf="form.get('employeeName')?.hasError('required')">
+                El nombre es requerido
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Identificación</mat-label>
+              <mat-icon matPrefix class="field-icon">fingerprint</mat-icon>
+              <input matInput formControlName="employeeId" placeholder="Número de documento">
+              <mat-error *ngIf="form.get('employeeId')?.hasError('required')">
+                La identificación es requerida
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Fecha Nacimiento</mat-label>
+              <mat-icon matPrefix class="field-icon">cake</mat-icon>
+              <input matInput [matDatepicker]="picker2" formControlName="birthDate">
+              <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
+              <mat-datepicker #picker2></mat-datepicker>
+              <mat-error *ngIf="form.get('birthDate')?.hasError('required')">
+                La fecha de nacimiento es requerida
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Tipo Vinculación</mat-label>
+              <mat-icon matPrefix class="field-icon">work</mat-icon>
+              <mat-select formControlName="tipoVinculacion">
+                <mat-option value="DIRECTO">Directo</mat-option>
+                <mat-option value="TEMPORAL">Temporal</mat-option>
+                <mat-option value="CONTRATISTA">Contratista</mat-option>
+                <mat-option value="APRENDIZ">Aprendiz</mat-option>
+              </mat-select>
+              <mat-error *ngIf="form.get('tipoVinculacion')?.hasError('required')">
+                El tipo de vinculación es requerido
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Jefe Inmediato</mat-label>
+              <mat-icon matPrefix class="field-icon">supervisor_account</mat-icon>
+              <input matInput formControlName="jefeInmediato" placeholder="Nombre del jefe inmediato">
+              <mat-error *ngIf="form.get('jefeInmediato')?.hasError('required')">
+                El jefe inmediato es requerido
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================= -->
+      <!-- SECCIÓN 3: CLASIFICACIÓN -->
+      <!-- ========================= -->
+      <div class="form-section" *ngIf="currentStep === 3">
+        <div class="section-header">
+          <div class="section-icon">
+            <mat-icon>category</mat-icon>
+          </div>
+          <h2>Clasificación del Evento</h2>
+          <span class="section-badge">Paso 3 de 3</span>
+        </div>
+
+        <div class="section-content">
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Tipo Lesión</mat-label>
+              <mat-icon matPrefix class="field-icon">healing</mat-icon>
+              <mat-select formControlName="tipoLesion" multiple>
+                <mat-option *ngFor="let lesion of lesiones" [value]="lesion">
+                  {{ lesion }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="form.get('tipoLesion')?.hasError('required')">
+                El tipo de lesión es requerido
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Parte Cuerpo Afectada</mat-label>
+              <mat-icon matPrefix class="field-icon">accessibility</mat-icon>
+              <mat-select formControlName="parteCuerpoAfectada" multiple>
+                <mat-option *ngFor="let parte of partesCuerpo" [value]="parte">
+                  {{ parte }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="form.get('parteCuerpoAfectada')?.hasError('required')">
+                La parte afectada es requerida
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Agente del Accidente</mat-label>
+              <mat-icon matPrefix class="field-icon">build</mat-icon>
+              <mat-select formControlName="agenteAccidente">
+                <mat-option *ngFor="let agente of agentes" [value]="agente">
+                  {{ agente }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="form.get('agenteAccidente')?.hasError('required')">
+                El agente es requerido
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Mecanismo</mat-label>
+              <mat-icon matPrefix class="field-icon">settings</mat-icon>
+              <mat-select formControlName="mecanismoAccidente">
+                <mat-option *ngFor="let mec of mecanismos" [value]="mec">
+                  {{ mec }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="form.get('mecanismoAccidente')?.hasError('required')">
+                El mecanismo es requerido
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row">
+            <mat-form-field appearance="outline" class="form-field full-width">
+              <mat-label>Regla Salva Vida</mat-label>
+              <mat-icon matPrefix class="field-icon">security</mat-icon>
+              <mat-select formControlName="reglaSalvaVida">
+                <mat-option *ngFor="let regla of reglas" [value]="regla">
+                  {{ regla }}
+                </mat-option>
+              </mat-select>
+              <mat-error *ngIf="form.get('reglaSalvaVida')?.hasError('required')">
+                La regla salva vida es requerida
+              </mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTONES DE NAVEGACIÓN Y ENVÍO -->
+      <div class="form-actions">
+        <div class="navigation-buttons">
+          <button 
+            *ngIf="currentStep > 1" 
+            type="button" 
+            mat-stroked-button 
+            (click)="prevStep()"
+            class="nav-btn prev">
+            <mat-icon>arrow_back</mat-icon>
+            Anterior
+          </button>
+          
+          <button 
+            *ngIf="currentStep < 3" 
+            type="button" 
+            mat-raised-button 
+            color="primary" 
+            (click)="nextStep()"
+            class="nav-btn next"
+            [disabled]="!isStepValid()">
+            Siguiente
+            <mat-icon>arrow_forward</mat-icon>
+          </button>
+          
+          <button 
+            *ngIf="currentStep === 3" 
+            type="submit" 
+            mat-raised-button 
+            color="primary" 
+            class="submit-btn"
+            [disabled]="form.invalid">
+            <mat-icon>{{ isEditMode ? 'update' : 'save' }}</mat-icon>
+            {{ isEditMode ? 'Actualizar Caso' : 'Guardar Caso' }}
+          </button>
+        </div>
+
+        <div class="form-status" *ngIf="form.invalid && form.touched">
+          <mat-icon class="warning-icon">warning</mat-icon>
+          <span>Completa todos los campos requeridos</span>
+        </div>
+      </div>
+
+    </form>
+  </mat-card>
+</div>

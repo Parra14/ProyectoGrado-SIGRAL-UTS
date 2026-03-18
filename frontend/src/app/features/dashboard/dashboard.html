@@ -1,1 +1,137 @@
-<p>dashboard works!</p>
+<div class="dashboard-container">
+  
+  <!-- HEADER CON TÍTULO -->
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">
+      <mat-icon class="title-icon">dashboard</mat-icon>
+      Panel de Control
+    </h1>
+    <p class="dashboard-subtitle">Visualiza y analiza los indicadores del sistema</p>
+  </div>
+
+  <!-- FILTROS MEJORADOS -->
+  <mat-card class="filters-card">
+    <div class="filters-header">
+      <mat-icon class="filters-icon">filter_alt</mat-icon>
+      <h3>Filtros de fecha</h3>
+    </div>
+    
+    <form [formGroup]="filterForm" class="filters-form">
+      <div class="filters-row">
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>Desde</mat-label>
+          <mat-icon matPrefix class="field-icon">event</mat-icon>
+          <input matInput [matDatepicker]="picker1" formControlName="from">
+          <mat-datepicker-toggle matIconSuffix [for]="picker1"></mat-datepicker-toggle>
+          <mat-datepicker #picker1></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="date-field">
+          <mat-label>Hasta</mat-label>
+          <mat-icon matPrefix class="field-icon">event</mat-icon>
+          <input matInput [matDatepicker]="picker2" formControlName="to">
+          <mat-datepicker-toggle matIconSuffix [for]="picker2"></mat-datepicker-toggle>
+          <mat-datepicker #picker2></mat-datepicker>
+        </mat-form-field>
+
+        <div class="filter-actions">
+          <button mat-raised-button color="primary" type="button" (click)="applyFilter()" class="apply-btn">
+            <mat-icon>check_circle</mat-icon>
+            Aplicar
+          </button>
+
+          <button mat-stroked-button color="warn" type="button" (click)="clearFilter()" class="clear-btn">
+            <mat-icon>refresh</mat-icon>
+            Limpiar
+          </button>
+        </div>
+      </div>
+    </form>
+  </mat-card>
+
+  <!-- CARDS DE MÉTRICAS -->
+  <div class="metrics-grid">
+    <mat-card class="metric-card total-cases">
+      <div class="metric-icon">
+        <mat-icon>assignment</mat-icon>
+      </div>
+      <div class="metric-content">
+        <span class="metric-label">Total Casos</span>
+        <span class="metric-value">{{ metrics?.totalCases || 0 }}</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="metric-card open-cases">
+      <div class="metric-icon">
+        <mat-icon>pending_actions</mat-icon>
+      </div>
+      <div class="metric-content">
+        <span class="metric-label">Abiertos</span>
+        <span class="metric-value">{{ metrics?.openCases || 0 }}</span>
+      </div>
+    </mat-card>
+
+    <mat-card class="metric-card closed-cases">
+      <div class="metric-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="metric-content">
+        <span class="metric-label">Cerrados</span>
+        <span class="metric-value">{{ metrics?.closedCases || 0 }}</span>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- GRÁFICAS -->
+  <div class="charts-grid">
+
+    <!-- Gráfica de Líneas -->
+    <mat-card class="chart-card">
+      <div class="chart-header">
+        <mat-icon class="chart-icon">show_chart</mat-icon>
+        <h3>Accidentes vs Incidentes</h3>
+      </div>
+      <mat-divider></mat-divider>
+      <div class="chart-container">
+        <canvas baseChart
+          [data]="lineChartData"
+          [options]="chartOptions"
+          [type]="'line'">
+        </canvas>
+      </div>
+    </mat-card>
+
+    <!-- Gráfica de Barras -->
+    <mat-card class="chart-card">
+      <div class="chart-header">
+        <mat-icon class="chart-icon">bar_chart</mat-icon>
+        <h3>Casos por Gravedad</h3>
+      </div>
+      <mat-divider></mat-divider>
+      <div class="chart-container">
+        <canvas baseChart
+          [data]="barChartData"
+          [options]="chartOptions"
+          [type]="'bar'">
+        </canvas>
+      </div>
+    </mat-card>
+
+    <!-- Gráfica de Doughnut -->
+    <mat-card class="chart-card">
+      <div class="chart-header">
+        <mat-icon class="chart-icon">pie_chart</mat-icon>
+        <h3>Distribución por Tipo</h3>
+      </div>
+      <mat-divider></mat-divider>
+      <div class="chart-container">
+        <canvas baseChart
+          [data]="doughnutChartData"
+          [options]="chartOptions"
+          [type]="'doughnut'">
+        </canvas>
+      </div>
+    </mat-card>
+
+  </div>
+</div>

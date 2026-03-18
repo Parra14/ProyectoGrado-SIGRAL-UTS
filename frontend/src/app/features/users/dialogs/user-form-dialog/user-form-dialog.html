@@ -1,1 +1,183 @@
-<p>user-form-dialog works!</p>
+<h2 mat-dialog-title class="dialog-title">
+  <div class="title-content">
+    <span class="title-icon">{{ data ? '✏️' : '👤' }}</span>
+    <span>{{ data ? 'Editar Usuario' : 'Crear Nuevo Usuario' }}</span>
+  </div>
+</h2>
+
+<mat-dialog-content class="dialog-content">
+  
+  <!-- BARRA DE PROGRESO (opcional) -->
+  <div class="form-progress" *ngIf="!data">
+    <div class="progress-steps">
+      <div class="step active">
+        <div class="step-indicator">1</div>
+        <span class="step-label">Información básica</span>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step" [class.active]="form.get('role')?.value === 'supervisor'">
+        <div class="step-indicator">2</div>
+        <span class="step-label">Configuración adicional</span>
+      </div>
+    </div>
+  </div>
+
+  <form [formGroup]="form" class="user-form">
+    
+    <!-- SECCIÓN: INFORMACIÓN BÁSICA -->
+    <div class="form-section">
+      <div class="section-header">
+        <mat-icon class="section-icon">person</mat-icon>
+        <h3>Información personal</h3>
+      </div>
+
+      <div class="form-grid">
+        <!-- Nombre -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nombre completo</mat-label>
+          <mat-icon matPrefix class="field-icon">badge</mat-icon>
+          <input matInput formControlName="name" placeholder="Ej: Juan Pérez">
+          <mat-error *ngIf="form.get('name')?.hasError('required')">
+            El nombre es obligatorio
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Email -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Correo electrónico</mat-label>
+          <mat-icon matPrefix class="field-icon">email</mat-icon>
+          <input matInput formControlName="email" placeholder="ejemplo@correo.com">
+          <mat-error *ngIf="form.get('email')?.hasError('required')">
+            El email es obligatorio
+          </mat-error>
+          <mat-error *ngIf="form.get('email')?.hasError('email')">
+            Ingresa un email válido
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: ROL Y PERMISOS -->
+    <div class="form-section">
+      <div class="section-header">
+        <mat-icon class="section-icon">security</mat-icon>
+        <h3>Rol y permisos</h3>
+      </div>
+
+      <div class="form-grid">
+        <!-- Rol -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Rol del usuario</mat-label>
+          <mat-icon matPrefix class="field-icon">badge</mat-icon>
+          <mat-select formControlName="role">
+            <mat-option value="admin">
+              <div class="role-option">
+                <span class="role-name">Administrador</span>
+                <span class="role-desc">Acceso completo al sistema</span>
+              </div>
+            </mat-option>
+            <mat-option value="supervisor">
+              <div class="role-option">
+                <span class="role-name">Supervisor</span>
+                <span class="role-desc">Puede ver reportes y casos</span>
+              </div>
+            </mat-option>
+            <mat-option value="usuario">
+              <div class="role-option">
+                <span class="role-name">Usuario</span>
+                <span class="role-desc">Acceso básico a casos</span>
+              </div>
+            </mat-option>
+          </mat-select>
+          <mat-hint *ngIf="form.get('role')?.value === 'admin'" class="warning-hint">
+            <mat-icon>warning</mat-icon> Los administradores tienen permisos totales
+          </mat-hint>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: CONTRASEÑA (solo para creación) -->
+    <div class="form-section" *ngIf="!data">
+      <div class="section-header">
+        <mat-icon class="section-icon">lock</mat-icon>
+        <h3>Contraseña</h3>
+      </div>
+
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Contraseña</mat-label>
+          <mat-icon matPrefix class="field-icon">key</mat-icon>
+          <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password">
+          <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-hint>Mínimo 6 caracteres</mat-hint>
+          <mat-error *ngIf="form.get('password')?.hasError('minlength')">
+            La contraseña debe tener al menos 6 caracteres
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Indicador de fortaleza (opcional) -->
+        <div class="password-strength" *ngIf="form.get('password')?.value">
+          <div class="strength-bar">
+            <div class="strength-fill" [style.width.%]="getPasswordStrength()"></div>
+          </div>
+          <span class="strength-text">{{ getPasswordStrengthText() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN: CONFIGURACIÓN ADICIONAL (solo para supervisor) -->
+    <div class="form-section" *ngIf="form.get('role')?.value === 'supervisor'">
+      <div class="section-header">
+        <mat-icon class="section-icon">schedule</mat-icon>
+        <h3>Configuración adicional</h3>
+      </div>
+
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Fecha de expiración</mat-label>
+          <mat-icon matPrefix class="field-icon">calendar_today</mat-icon>
+          <input matInput [matDatepicker]="picker" formControlName="expiresAt">
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-datepicker #picker></mat-datepicker>
+          <mat-hint>Opcional - Dejar vacío si no expira</mat-hint>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- RESUMEN DEL FORMULARIO (para edición) -->
+    <div class="form-summary" *ngIf="data">
+      <div class="summary-item">
+        <mat-icon>fingerprint</mat-icon>
+        <span>ID: {{ data._id | slice:0:8 }}...</span>
+      </div>
+      <div class="summary-item">
+        <mat-icon>access_time</mat-icon>
+        <span>Creado: {{ data.createdAt | date:'dd/MM/yyyy' }}</span>
+      </div>
+    </div>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-button (click)="dialogRef.close()" class="cancel-btn" type="button">
+    <mat-icon>close</mat-icon>
+    Cancelar
+  </button>
+  
+  <button 
+    mat-raised-button 
+    color="primary" 
+    [disabled]="form.invalid || loading"
+    (click)="save()"
+    class="save-btn">
+    <mat-icon>{{ data ? 'update' : 'save' }}</mat-icon>
+    <span *ngIf="!loading">{{ data ? 'Actualizar' : 'Guardar' }}</span>
+    <span *ngIf="loading" class="loading-spinner">
+      <mat-spinner diameter="20"></mat-spinner>
+      Guardando...
+    </span>
+  </button>
+</mat-dialog-actions>

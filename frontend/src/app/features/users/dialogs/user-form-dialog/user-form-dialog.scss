@@ -1,0 +1,319 @@
+// Paleta UTS
+$uts-green-primary: #2e7d32;
+$uts-green-dark: #1b5e20;
+$uts-green-light: #4caf50;
+$uts-green-bg: #e8f5e9;
+$uts-orange: #ff9800;
+$uts-red: #f44336;
+$uts-blue: #2196f3;
+$uts-gray-light: #f5f5f5;
+$uts-gray: #757575;
+$uts-gray-dark: #424242;
+
+.dialog-title {
+  margin: 0;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, $uts-green-primary, $uts-green-dark);
+  color: white;
+
+  .title-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .title-icon {
+      font-size: 24px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    span {
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+  }
+}
+
+.dialog-content {
+  padding: 24px !important;
+  max-height: 70vh;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $uts-gray-light;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $uts-green-primary;
+    border-radius: 4px;
+
+    &:hover {
+      background: $uts-green-dark;
+    }
+  }
+}
+
+// Barra de progreso
+.form-progress {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: $uts-gray-light;
+  border-radius: 12px;
+
+  .progress-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+
+      .step-indicator {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid $uts-gray;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: $uts-gray;
+      }
+
+      .step-label {
+        font-size: 0.8rem;
+        color: $uts-gray;
+        text-align: center;
+      }
+
+      &.active {
+        .step-indicator {
+          border-color: $uts-green-primary;
+          background: rgba($uts-green-primary, 0.1);
+          color: $uts-green-primary;
+        }
+
+        .step-label {
+          color: $uts-green-dark;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .step-connector {
+      width: 40px;
+      height: 2px;
+      background: $uts-gray;
+    }
+  }
+}
+
+// Secciones del formulario
+.form-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: $uts-gray-light;
+  border-radius: 12px;
+  border: 1px solid rgba($uts-green-primary, 0.1);
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+
+    .section-icon {
+      color: $uts-green-primary;
+    }
+
+    h3 {
+      margin: 0;
+      color: $uts-green-dark;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+  }
+
+  .form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .full-width {
+    width: 100%;
+
+    .field-icon {
+      color: $uts-green-primary;
+      margin-right: 8px;
+    }
+
+    ::ng-deep .mat-form-field-outline {
+      color: $uts-green-primary;
+    }
+
+    .warning-hint {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: $uts-orange;
+      font-size: 0.75rem;
+      margin-top: 4px;
+
+      mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+}
+
+// Opciones de rol
+.role-option {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+
+  .role-name {
+    font-weight: 500;
+  }
+
+  .role-desc {
+    font-size: 0.7rem;
+    color: $uts-gray;
+  }
+}
+
+// Fortaleza de contraseña
+.password-strength {
+  margin-top: 4px;
+
+  .strength-bar {
+    height: 4px;
+    background: $uts-gray-light;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 4px;
+
+    .strength-fill {
+      height: 100%;
+      transition: width 0.3s ease;
+      
+      &[style*="width: 2"] { background: $uts-red; }
+      &[style*="width: 4"] { background: $uts-orange; }
+      &[style*="width: 6"] { background: $uts-blue; }
+      &[style*="width: 8"] { background: $uts-green-primary; }
+    }
+  }
+
+  .strength-text {
+    font-size: 0.75rem;
+    color: $uts-gray;
+  }
+}
+
+// Resumen del formulario
+.form-summary {
+  display: flex;
+  gap: 16px;
+  padding: 12px;
+  background: rgba($uts-green-primary, 0.05);
+  border-radius: 8px;
+  margin-top: 16px;
+
+  .summary-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: $uts-gray;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: $uts-green-primary;
+    }
+  }
+}
+
+// Acciones del diálogo
+.dialog-actions {
+  padding: 16px 24px;
+  border-top: 1px solid rgba($uts-green-primary, 0.1);
+  background: $uts-gray-light;
+  gap: 12px;
+
+  .cancel-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: $uts-gray;
+
+    mat-icon {
+      font-size: 18px;
+    }
+
+    &:hover {
+      color: $uts-red;
+    }
+  }
+
+  .save-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 24px;
+    border-radius: 25px;
+    background: $uts-green-primary;
+
+    mat-icon {
+      font-size: 18px;
+    }
+
+    &:hover:not([disabled]) {
+      background: $uts-green-dark;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba($uts-green-primary, 0.3);
+    }
+
+    &[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .loading-spinner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .progress-steps {
+    flex-direction: column;
+    
+    .step-connector {
+      width: 2px !important;
+      height: 20px !important;
+    }
+  }
+
+  .form-summary {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

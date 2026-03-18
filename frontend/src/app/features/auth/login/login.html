@@ -1,1 +1,34 @@
-<p>login works!</p>
+<div class="login-container">
+  <mat-card class="login-card">
+    <div class="logo-container">
+      <img src="assets/Logo-UTS-1.png" alt="UTS Logo" class="logo">
+      <h1 class="institution-name">Unidades Tecnológicas de Santander</h1>
+      <p class="slogan">¡Lo hacemos posible!</p>
+    </div>
+
+    <h2 class="access-title">Acceso al sistema</h2>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Correo institucional</mat-label>
+      <input matInput [(ngModel)]="email" placeholder="ejemplo@correo.uts.edu.co">
+      <mat-icon matSuffix>email</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Contraseña</mat-label>
+      <input matInput [type]="hidePassword ? 'password' : 'text'" [(ngModel)]="password">
+      <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button">
+        <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <button mat-raised-button class="full-width login-button" (click)="login()">
+      Ingresar
+    </button>
+
+
+    <div class="footer">
+      <p>Soporte: <a href="mailto:soporte@uts.edu.co">soporte@uts.edu.co</a></p>
+    </div>
+  </mat-card>
+</div>

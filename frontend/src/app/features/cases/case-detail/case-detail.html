@@ -1,1 +1,184 @@
-<p>case-detail works!</p>
+<h2 mat-dialog-title class="dialog-title">
+  <div class="title-content">
+    <span class="title-icon">📋</span>
+    <span>Detalle del Caso</span>
+  </div>
+  <span class="case-code-badge">{{ data.code }}</span>
+</h2>
+
+<mat-dialog-content class="dialog-content">
+
+  <!-- INFORMACIÓN GENERAL EN TARJETAS -->
+  <div class="info-section">
+    <h3 class="section-title">
+      <span class="section-icon">ℹ️</span>
+      Información General
+    </h3>
+
+    <div class="info-grid">
+      <!-- Estado -->
+      <div class="info-item">
+        <span class="info-label">Estado</span>
+        <span class="info-value">
+          <span class="status-badge" [ngClass]="getStatusClass(data.status)">
+            {{ data.status.replace('_', ' ') }}
+          </span>
+        </span>
+      </div>
+
+      <!-- Tipo -->
+      <div class="info-item">
+        <span class="info-label">Tipo</span>
+        <span class="info-value">
+          <span class="type-badge" [ngClass]="data.tipoEventoPrincipal === 'ACCIDENTE' ? 'type-accidente' : 'type-incidente'">
+            {{ data.tipoEventoPrincipal }}
+          </span>
+        </span>
+      </div>
+
+      <!-- Gravedad -->
+      <div class="info-item">
+        <span class="info-label">Gravedad</span>
+        <span class="info-value">
+          <span class="severity-badge" [ngClass]="getSeverityClass(data.gradoGravedad)">
+            {{ data.gradoGravedad }}
+          </span>
+        </span>
+      </div>
+
+      <!-- Código -->
+      <div class="info-item">
+        <span class="info-label">Código</span>
+        <span class="info-value code-value">{{ data.code }}</span>
+      </div>
+
+      <!-- Trabajador -->
+      <div class="info-item">
+        <span class="info-label">Trabajador</span>
+        <span class="info-value">{{ data.employeeName }}</span>
+      </div>
+
+      <!-- Documento -->
+      <div class="info-item">
+        <span class="info-label">Documento</span>
+        <span class="info-value">{{ data.employeeId }}</span>
+      </div>
+
+      <!-- Jefe Inmediato -->
+      <div class="info-item">
+        <span class="info-label">Jefe Inmediato</span>
+        <span class="info-value">{{ data.jefeInmediato || 'No registrado' }}</span>
+      </div>
+
+      <!-- Jornada -->
+      <div class="info-item">
+        <span class="info-label">Jornada</span>
+        <span class="info-value">{{ data.jornada }}</span>
+      </div>
+
+      <!-- Lugar -->
+      <div class="info-item">
+        <span class="info-label">Lugar</span>
+        <span class="info-value">{{ data.lugarExacto }}</span>
+      </div>
+
+      <!-- Categoría -->
+      <div class="info-item">
+        <span class="info-label">Categoría</span>
+        <span class="info-value">{{ data.categoriaEvento }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESCRIPCIÓN DEL EVENTO -->
+  <div class="description-section">
+    <h3 class="section-title">
+      <span class="section-icon">📝</span>
+      Descripción del Evento
+    </h3>
+    <div class="description-card">
+      <p class="description-text">{{ data.descripcionEvento }}</p>
+    </div>
+  </div>
+
+  <!-- HISTORIAL DE SEGUIMIENTO -->
+  <div class="timeline-section">
+    <h3 class="section-title">
+      <span class="section-icon">⏱️</span>
+      Historial de Seguimiento
+    </h3>
+
+    <div *ngIf="data.seguimientos?.length; else noSeguimientos" class="timeline">
+      <div *ngFor="let s of data.seguimientos; let last = last" class="timeline-wrapper">
+        <div class="timeline-item" [ngClass]="getTimelineClass(s.type)">
+          
+          <!-- Cabecera del timeline -->
+          <div class="timeline-header">
+            <div class="header-left">
+              <span class="timeline-icon" [ngClass]="getTimelineIconClass(s.type)">
+                {{ getTimelineIcon(s.type) }}
+              </span>
+              <span class="timeline-type">{{ getTypeLabel(s.type) }}</span>
+            </div>
+            <span class="timeline-date">{{ s.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+
+          <!-- Mensaje -->
+          <div class="timeline-message">
+            <p>{{ s.message }}</p>
+          </div>
+
+          <!-- Cambio de estado (si aplica) -->
+          <div *ngIf="s.type === 'STATUS_CHANGE'" class="status-change-card">
+            <div class="status-change-content">
+              <span class="status-change-label">Cambio de estado:</span>
+              <span class="status-from" [ngClass]="getStatusClass(s.fromStatus)">
+                {{ s.fromStatus?.replace('_', ' ') }}
+              </span>
+              <span class="status-arrow">→</span>
+              <span class="status-to" [ngClass]="getStatusClass(s.toStatus)">
+                {{ s.toStatus?.replace('_', ' ') }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Evidencias (si aplica) -->
+          <div *ngIf="s.evidences?.length" class="evidences-section">
+            <div class="evidences-title">
+              <span class="evidences-icon">📎</span>
+              <span>Evidencias adjuntas ({{ s.evidences.length }})</span>
+            </div>
+            <div class="evidences-list">
+              <a *ngFor="let ev of s.evidences" 
+                 [href]="'http://localhost:4000' + ev" 
+                 target="_blank"
+                 class="evidence-link">
+                <span class="evidence-icon">📄</span>
+                <span class="evidence-name">{{ ev.split('/').pop() }}</span>
+                <span class="evidence-download">⬇️</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Línea conectora (excepto el último) -->
+          <div *ngIf="!last" class="timeline-connector"></div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noSeguimientos>
+      <div class="empty-state">
+        <span class="empty-icon">📭</span>
+        <p class="empty-text">No hay seguimiento registrado para este caso</p>
+      </div>
+    </ng-template>
+  </div>
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-button mat-dialog-close class="close-btn">
+    <span class="btn-icon">✕</span>
+    Cerrar
+  </button>
+</mat-dialog-actions>
